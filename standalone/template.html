@@ -712,6 +712,11 @@
     border-radius: 8px; font-size: 0.9rem;
   }
   .ui-edit-row input:focus { outline: 2px solid var(--blue-light); border-color: var(--blue-medium); }
+  .ui-edit-row select {
+    width: 100%; padding: 10px 12px; border: 1px solid var(--border);
+    border-radius: 8px; font-size: 0.9rem; background: var(--surface); color: var(--text-1);
+  }
+  .ui-edit-row select:focus { outline: 2px solid var(--blue-light); border-color: var(--blue-medium); }
   .ui-edit-hint {
     font-size: 0.8rem; color: var(--text-2); line-height: 1.45; margin-bottom: 12px;
     padding: 10px 12px; background: var(--off-white); border-radius: 8px; border: 1px solid var(--border);
@@ -970,9 +975,8 @@
     <div class="modal-body" id="column-alert-body">
       <div class="alert-icon-wrap" aria-hidden="true">⚠️</div>
       <p class="column-alert-lead">
-        O cabeçalho do CSV deve ter os <strong>mesmos nomes</strong> configurados em ✏️ Personalizar
-        (ou os padrão abaixo). Cada coluna é localizada pelo nome — <strong>tem que ser igual</strong>
-        ao da planilha (só ignora maiúsculas/minúsculas e acentos).
+        Em <strong>✏️ Personalizar</strong>, defina o <strong>separador</strong> (; ou , ou TAB) igual ao do arquivo
+        e os <strong>nomes das colunas</strong> iguais ao cabeçalho da planilha. Só assim o painel puxa os dados.
       </p>
       <div id="column-alert-extra"></div>
       <p style="font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--blue);margin:12px 0 8px;">
@@ -1087,6 +1091,8 @@ const UPDATE_HISTORY = __UPDATE_HISTORY__;
 
 let UI_LABELS = __UI_LABELS__;
 let CSV_COLUMNS = __CSV_COLUMNS__;
+let CSV_OPTIONS = __CSV_OPTIONS__;
+const DEFAULT_CSV_OPTIONS = { delimiter: ";" };
 const DEFAULT_CSV_COLUMNS = {
   cargo_ocupado:      "CARGO ATUAL",
   cargo_origem:       "CARGO DE ORIGEM",
@@ -1152,6 +1158,25 @@ function getCsvColumnNames() {
   return out;
 }
 
+/** Separador escolhido em ✏️ (não é mais detectado automaticamente). */
+function getCsvDelimiterSetting() {
+  const d = CSV_OPTIONS && CSV_OPTIONS.delimiter;
+  if (d === ";" || d === "," || d === "tab") return d;
+  return DEFAULT_CSV_OPTIONS.delimiter;
+}
+
+function getCsvDelimiter() {
+  const s = getCsvDelimiterSetting();
+  return s === "tab" ? "\t" : s;
+}
+
+function csvDelimiterLabel(settingOrChar) {
+  const s = settingOrChar === "\t" ? "tab" : (settingOrChar || getCsvDelimiterSetting());
+  if (s === "tab") return "Tabulação (TAB)";
+  if (s === ",") return "Vírgula (,)";
+  return "Ponto e vírgula (;)";
+}
+
 function applyUILabels() {
   const L = getUILabels();
   Object.keys(L.filters).forEach(key => {
@@ -1201,10 +1226,25 @@ function buildUiEditFormHtml() {
         <input type="text" data-ui-field="filter-ph-${key}" value="${escapeHtml(cfg.placeholder || "")}" placeholder="Ex.: Todos, Todas…">
       </div>`;
   });
+  const delimSet = getCsvDelimiterSetting();
+  html += '<div class="ui-edit-section-title">Separador do CSV</div>';
+  html += `<p class="ui-edit-hint" style="margin-bottom:10px;">
+    Escolha o <strong>mesmo separador</strong> que o Excel (ou outro programa) usa ao salvar o arquivo.
+    Se não for igual ao da planilha, as colunas não batem e o painel não puxa os dados.
+  </p>`;
+  html += `
+    <div class="ui-edit-row">
+      <label>Como as colunas são separadas no arquivo</label>
+      <select id="csv-delim-select" aria-label="Separador do CSV">
+        <option value=";"${delimSet === ";" ? " selected" : ""}>; — Ponto e vírgula (Excel em português / BR)</option>
+        <option value=","${delimSet === "," ? " selected" : ""}>, — Vírgula (Excel em inglês / Google Sheets)</option>
+        <option value="tab"${delimSet === "tab" ? " selected" : ""}>TAB — Tabulação</option>
+      </select>
+    </div>`;
   html += '<div class="ui-edit-section-title">Nomes das colunas no CSV</div>';
   html += `<p class="ui-edit-hint" style="margin-bottom:10px;">
-    Digite o <strong>nome exato</strong> do cabeçalho na sua planilha. O painel só lê a coluna quando o texto do CSV
-    for <strong>igual</strong> ao configurado aqui (diferença só de maiúsculas/minúsculas e acentos).
+    Digite o <strong>nome exato</strong> do cabeçalho na sua planilha (igual ao da primeira linha do CSV).
+    Só ignora maiúsculas/minúsculas e acentos na comparação.
   </p>`;
   const csvNames = getCsvColumnNames();
   COLUMN_GUIDE.forEach(c => {
@@ -1259,6 +1299,12 @@ function isUiEditOpen() {
   return shell && (shell.classList.contains("show") || shell.classList.contains("minimized"));
 }
 
+function readCsvOptionsFromForm() {
+  const sel = document.getElementById("csv-delim-select");
+  const d = sel ? sel.value : DEFAULT_CSV_OPTIONS.delimiter;
+  return { delimiter: (d === "," || d === "tab") ? d : ";" };
+}
+
 function readCsvColumnsFromForm() {
   const next = {};
   COLUMN_GUIDE.forEach(c => {
@@ -1289,10 +1335,12 @@ function readUiLabelsFromForm() {
 
 function saveUiLabelsFromForm() {
   UI_LABELS = readUiLabelsFromForm();
+  CSV_OPTIONS = readCsvOptionsFromForm();
   CSV_COLUMNS = readCsvColumnsFromForm();
   try {
     localStorage.setItem(APP_FILE_PREFIX + "-ui-labels", JSON.stringify(UI_LABELS));
     localStorage.setItem(APP_FILE_PREFIX + "-csv-columns", JSON.stringify(CSV_COLUMNS));
+    localStorage.setItem(APP_FILE_PREFIX + "-csv-options", JSON.stringify(CSV_OPTIONS));
   } catch (_) {}
   applyUILabels();
   if (CURRENT_CSV) loadCSVText(CURRENT_CSV, false);
@@ -1303,15 +1351,17 @@ function saveUiLabelsFromForm() {
   IS_MODIFIED = true;
   updateDataStatus();
   closeUiEditModal();
-  showToast("✓ Personalização aplicada — confira se o CSV usa os mesmos nomes de coluna", "success");
+  showToast("✓ Aplicado — separador e nomes de coluna devem ser iguais aos do seu CSV", "success");
 }
 
 function resetUiLabels() {
   UI_LABELS = {};
   CSV_COLUMNS = {};
+  CSV_OPTIONS = { ...DEFAULT_CSV_OPTIONS };
   try {
     localStorage.removeItem(APP_FILE_PREFIX + "-ui-labels");
     localStorage.removeItem(APP_FILE_PREFIX + "-csv-columns");
+    localStorage.removeItem(APP_FILE_PREFIX + "-csv-options");
   } catch (_) {}
   applyUILabels();
   if (ALL_ROWS.length) populateFilters(ALL_ROWS);
@@ -1340,6 +1390,13 @@ function loadStoredUiLabels() {
       if (raw) CSV_COLUMNS = JSON.parse(raw);
     } catch (_) {}
   }
+  if (!CSV_OPTIONS || !CSV_OPTIONS.delimiter) {
+    try {
+      const raw = localStorage.getItem(APP_FILE_PREFIX + "-csv-options");
+      if (raw) CSV_OPTIONS = JSON.parse(raw);
+    } catch (_) {}
+  }
+  if (!CSV_OPTIONS || !CSV_OPTIONS.delimiter) CSV_OPTIONS = { ...DEFAULT_CSV_OPTIONS };
 }
 
 /* ---------- DICIONÁRIOS CID ---------- */
@@ -1664,23 +1721,7 @@ function cleanCell(s) {
     .trim();
 }
 
-function detectDelimiter(lines) {
-  const sample = lines.filter(l => l && l.trim()).slice(0, 40);
-  if (!sample.length) return ";";
-  const scores = { ";": 0, ",": 0, "\t": 0 };
-  for (const line of sample) {
-    let inQ = false;
-    for (let i = 0; i < line.length; i++) {
-      const ch = line[i];
-      if (ch === '"') { inQ = !inQ; continue; }
-      if (!inQ && scores[ch] !== undefined) scores[ch]++;
-    }
-  }
-  const best = Object.entries(scores).sort((a, b) => b[1] - a[1])[0];
-  return best[1] > 0 ? best[0] : ";";
-}
-
-function splitCSVLine(line, delim = ";") {
+function splitCSVLine(line, delim) {
   const cells = [];
   let cur = "", inQuote = false;
   for (let i = 0; i < line.length; i++) {
@@ -1711,11 +1752,12 @@ function renderColumnGuideList() {
   const ul = document.getElementById("column-guide-list");
   if (!ul) return;
   const names = getCsvColumnNames();
-  ul.innerHTML = COLUMN_GUIDE.map(c => {
-    const req = c.required ? ' <strong>(obrigatória)</strong>' : "";
-    return `<li><strong>${escapeHtml(c.title)}</strong>${req} — «<code>${escapeHtml(names[c.key] || "")}</code>»</li>`;
-  }).join("") +
-    `<li>Configure outros nomes em <strong>✏️ Personalizar</strong> → Nomes das colunas no CSV.</li>`;
+  ul.innerHTML =
+    `<li><strong>Separador</strong> — ${escapeHtml(csvDelimiterLabel())} (configure em ✏️ se o arquivo usar outro)</li>` +
+    COLUMN_GUIDE.map(c => {
+      const req = c.required ? ' <strong>(obrigatória)</strong>' : "";
+      return `<li><strong>${escapeHtml(c.title)}</strong>${req} — «<code>${escapeHtml(names[c.key] || "")}</code>»</li>`;
+    }).join("");
 }
 
 function inspectCSVColumns(text) {
@@ -1724,7 +1766,7 @@ function inspectCSVColumns(text) {
   }
   if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
   const rawLines = text.split(/\r?\n/).filter(l => l && l.trim());
-  const delim = detectDelimiter(rawLines);
+  const delim = getCsvDelimiter();
   const parsed = [];
   for (const line of rawLines) {
     const cells = splitCSVLine(line, delim);
@@ -1740,20 +1782,22 @@ function inspectCSVColumns(text) {
     colMap = buildColMap(parsed[headerIdx]);
   } else {
     usedFallback = true;
-    colMap = { ...DEFAULT_COL_MAP };
+    colMap = null;
   }
-  const missingRequired = COLUMN_GUIDE.filter(c => {
-    if (!c.required) return false;
-    const idx = colMap[c.key];
-    return idx === undefined || idx < 0;
-  }).map(c => c.key);
   const warnings = [];
   if (usedFallback) {
     warnings.push(
-      "Linha de cabeçalho não encontrada — inclua uma linha com os nomes das colunas "
-      + "(ex.: «" + (names.cargo_ocupado || "CARGO ATUAL") + "», «" + (names.data_inicio || "INÍCIO DO AFASTAMENTO") + "»)."
+      "Cabeçalho não encontrado com separador «" + csvDelimiterLabel() + "» — confira ✏️ Personalizar "
+      + "(separador e nomes «" + (names.cargo_ocupado || "CARGO ATUAL") + "», «"
+      + (names.data_inicio || "INÍCIO DO AFASTAMENTO") + "»)."
     );
   }
+  const missingRequired = COLUMN_GUIDE.filter(c => {
+    if (!c.required) return false;
+    if (!colMap) return true;
+    const idx = colMap[c.key];
+    return idx === undefined || idx < 0;
+  }).map(c => c.key);
   if (hasHeader && missingRequired.length) {
     const list = missingRequired.map(k => {
       const t = COLUMN_GUIDE.find(c => c.key === k)?.title || k;
@@ -1785,7 +1829,7 @@ function showColumnFormatAlert(inspection) {
     } else if (inspection && inspection.usedFallback) {
       boxes = `<div class="column-alert-box danger"><strong>Atenção:</strong> ${escapeHtml(inspection.warnings[0] || "Verifique se as colunas estão na ordem correta.")}</div>`;
     } else {
-      boxes = `<div class="column-alert-box">Separador detectado: use <strong>;</strong> (ponto e vírgula). Salve no Excel como <strong>CSV UTF-8</strong>.</div>`;
+      boxes = `<div class="column-alert-box">Separador configurado: <strong>${escapeHtml(csvDelimiterLabel())}</strong>. Salve o CSV no Excel como <strong>CSV UTF-8</strong>.</div>`;
     }
     extra.innerHTML = boxes;
   }
@@ -1808,7 +1852,7 @@ function diagnoseCSV(text) {
   if (rows.length > 0) return null;
   const lines = text.split(/\r?\n/).filter(l => l && l.trim());
   if (!lines.length) return "nenhuma linha com conteúdo";
-  const delim = detectDelimiter(lines);
+  const delim = getCsvDelimiter();
   const parsed = lines.slice(0, 80).map(l => splitCSVLine(l, delim));
   const headerIdx = findHeaderRowIndex(parsed);
   const cols = (headerIdx >= 0 ? parsed[headerIdx] : [])
@@ -1816,8 +1860,8 @@ function diagnoseCSV(text) {
   const names = getCsvColumnNames();
   if (headerIdx < 0) {
     return "cabeçalho não encontrado — inclua «" + (names.cargo_ocupado || "CARGO ATUAL") + "» e «"
-      + (names.data_inicio || "INÍCIO DO AFASTAMENTO") + "» (separador: "
-      + (delim === "\t" ? "tab" : delim) + ").";
+      + (names.data_inicio || "INÍCIO DO AFASTAMENTO") + "» — separador em ✏️: "
+      + csvDelimiterLabel() + ".";
   }
   return "nenhum registro válido — confira «" + (names.data_inicio || "data início") + "» com datas DD/MM/AAAA"
     + (cols.length ? ". Colunas no arquivo: " + cols.join(" | ") : "");
@@ -1828,7 +1872,7 @@ function parseCSV(text) {
   if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
 
   const rawLines = text.split(/\r?\n/).filter(l => l && l.trim());
-  const delim = detectDelimiter(rawLines);
+  const delim = getCsvDelimiter();
 
   const parsed = [];
   for (const line of rawLines) {
@@ -2834,8 +2878,10 @@ async function downloadUpdatedHTML(authorName) {
     newHtml = newHtml.replace(/const UPDATE_HISTORY = [^;]+;/, `const UPDATE_HISTORY = ${historyJson};`);
     const labelsJson = JSON.stringify(UI_LABELS || {});
     const colsJson = JSON.stringify(CSV_COLUMNS || {});
+    const optsJson = JSON.stringify(CSV_OPTIONS || DEFAULT_CSV_OPTIONS);
     newHtml = newHtml.replace(/let UI_LABELS = [^;]+;/, `let UI_LABELS = ${labelsJson};`);
     newHtml = newHtml.replace(/let CSV_COLUMNS = [^;]+;/, `let CSV_COLUMNS = ${colsJson};`);
+    newHtml = newHtml.replace(/let CSV_OPTIONS = [^;]+;/, `let CSV_OPTIONS = ${optsJson};`);
     newHtml = newHtml.replace(/let APP_THEME = [^;]+;/, `let APP_THEME = "${APP_THEME}";`);
 
     // 5. Download
