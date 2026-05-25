@@ -723,8 +723,55 @@
   }
   .ui-edit-section-title:first-child { border-top: none; margin-top: 0; padding-top: 0; }
 
+  /* Painel personalizar textos — expandido e minimizado */
+  .ui-edit-shell { position: fixed; inset: 0; z-index: 2000; pointer-events: none; }
+  .ui-edit-overlay {
+    position: fixed; inset: 0;
+    background: rgba(6, 32, 74, 0.65);
+    backdrop-filter: blur(6px);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    padding: 24px;
+    pointer-events: auto;
+  }
+  .ui-edit-shell.show .ui-edit-overlay { display: flex; }
+  .ui-edit-dock {
+    position: fixed;
+    bottom: 132px;
+    right: 22px;
+    display: none;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px 10px 16px;
+    border-radius: 14px;
+    border: 2px solid var(--white);
+    background: linear-gradient(135deg, var(--blue-medium), var(--blue));
+    color: var(--white);
+    font-size: 0.82rem;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 8px 28px rgba(10, 44, 91, 0.35);
+    pointer-events: auto;
+    transition: transform 0.2s, box-shadow 0.2s;
+    max-width: min(280px, calc(100vw - 44px));
+  }
+  .ui-edit-dock:hover { transform: translateY(-2px); box-shadow: 0 10px 32px rgba(10, 44, 91, 0.42); }
+  .ui-edit-shell.minimized .ui-edit-dock { display: flex; }
+  .ui-edit-dock-icon { font-size: 1.1rem; flex-shrink: 0; }
+  .ui-edit-dock-label { flex: 1; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ui-edit-dock-expand {
+    font-size: 0.7rem; opacity: 0.9;
+    background: rgba(255, 255, 255, 0.2);
+    padding: 4px 8px; border-radius: 8px;
+  }
+  [data-theme="dark"] .ui-edit-dock {
+    border-color: rgba(94, 184, 255, 0.35);
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.45);
+  }
+
   @media print {
-    .filter-bar, .header-right .actions, .fab-edit { display: none !important; }
+    .filter-bar, .header-right .actions, .fab-edit, .ui-edit-dock { display: none !important; }
     body { background: white; }
     .card, .kpi, .plan-card { break-inside: avoid; }
   }
@@ -986,26 +1033,33 @@
   </div>
 </div>
 
-<!-- MODAL: personalizar textos -->
-<div class="modal-overlay" id="ui-edit-modal">
-  <div class="modal" style="max-width:520px;">
-    <div class="modal-header">
-      <h2>✏️ Personalizar textos</h2>
-      <button class="modal-close" onclick="closeUiEditModal()">&times;</button>
-    </div>
-    <div class="modal-body">
-      <p class="ui-edit-hint">
-        Renomeie os filtros e títulos para o seu contexto (estoque, prateleira, loja, etc.).
-        Ao <strong>Salvar versão atualizada</strong>, os nomes ficam gravados no arquivo HTML.
-      </p>
-      <div class="ui-edit-grid" id="ui-edit-form"></div>
-    </div>
-    <div class="modal-footer" style="flex-wrap:wrap; gap:8px;">
-      <button class="btn-modal" type="button" onclick="resetUiLabels()">Restaurar padrão</button>
-      <button class="btn-modal" type="button" onclick="closeUiEditModal()">Cancelar</button>
-      <button class="btn-modal primary" type="button" onclick="saveUiLabelsFromForm()">Aplicar</button>
+<!-- Painel: personalizar textos (X minimiza; aba fixa reabre) -->
+<div class="ui-edit-shell" id="ui-edit-shell" aria-hidden="true">
+  <div class="ui-edit-overlay" id="ui-edit-overlay">
+    <div class="modal" style="max-width:520px;" role="dialog" aria-labelledby="ui-edit-title">
+      <div class="modal-header">
+        <h2 id="ui-edit-title">✏️ Personalizar textos</h2>
+        <button type="button" class="modal-close" onclick="minimizeUiEditModal()" title="Minimizar" aria-label="Minimizar painel">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="ui-edit-hint">
+          Renomeie os filtros e títulos para o seu contexto (estoque, prateleira, loja, etc.).
+          Ao <strong>Salvar versão atualizada</strong>, os nomes ficam gravados no arquivo HTML.
+        </p>
+        <div class="ui-edit-grid" id="ui-edit-form"></div>
+      </div>
+      <div class="modal-footer" style="flex-wrap:wrap; gap:8px;">
+        <button class="btn-modal" type="button" onclick="resetUiLabels()">Restaurar padrão</button>
+        <button class="btn-modal" type="button" onclick="closeUiEditModal()">Cancelar</button>
+        <button class="btn-modal primary" type="button" onclick="saveUiLabelsFromForm()">Aplicar</button>
+      </div>
     </div>
   </div>
+  <button type="button" class="ui-edit-dock" id="ui-edit-dock" title="Expandir personalização de textos" aria-label="Expandir personalização de textos">
+    <span class="ui-edit-dock-icon" aria-hidden="true">✏️</span>
+    <span class="ui-edit-dock-label">Personalizar textos</span>
+    <span class="ui-edit-dock-expand" aria-hidden="true">▲</span>
+  </button>
 </div>
 
 <div class="fab-stack">
@@ -1045,7 +1099,7 @@ ASSISTENTE EXEMPLO F;ASSISTENTE EXEMPLO F;CIDADE EPSILON;ATENDIMENTO;UNIDADE EPS
 TECNICO EXEMPLO E;TECNICO EXEMPLO E;CIDADE DELTA;LOGÍSTICA;UNIDADE DELTA;01/07/2025;1;02/07/2025;B34;;39
 ANALISTA EXEMPLO B;ANALISTA EXEMPLO B;CIDADE BETA - 2ª REGIÃO;DIRETORIA EXEMPLO;UNIDADE BETA;14/07/2025;90;12/10/2025;F32;;42
 `;
-const GENERATED_AT = "25/05/2026 19:37";
+const GENERATED_AT = "25/05/2026 16:42";
 const UPDATED_BY = "Importação inicial";
 const UPDATE_HISTORY = [];
 // UPDATE_HISTORY é um array: [{name, when, records}, ...] em ordem cronológica.
@@ -1120,9 +1174,17 @@ function filterPlaceholder(key, fallback) {
   return (f && f.placeholder) ? f.placeholder : fallback;
 }
 
-function openUiEditModal() {
+function uiEditShell() {
+  return document.getElementById("ui-edit-shell");
+}
+
+function setUiEditFabActive(on) {
+  const btn = document.getElementById("btn-ui-edit");
+  if (btn) btn.classList.toggle("active", on);
+}
+
+function buildUiEditFormHtml() {
   const L = getUILabels();
-  const form = document.getElementById("ui-edit-form");
   let html = '<div class="ui-edit-section-title">Filtros de busca</div>';
   const filterOrder = ["cargo", "regional", "bloco", "ano", "mes"];
   filterOrder.forEach(key => {
@@ -1143,14 +1205,39 @@ function openUiEditModal() {
         <input type="text" data-ui-field="section-${key}" value="${escapeHtml(L.sections[key] || "")}">
       </div>`;
   });
-  form.innerHTML = html;
-  document.getElementById("ui-edit-modal").classList.add("show");
-  document.getElementById("btn-ui-edit").classList.add("active");
+  return html;
+}
+
+function openUiEditModal() {
+  const shell = uiEditShell();
+  if (!shell) return;
+  document.getElementById("ui-edit-form").innerHTML = buildUiEditFormHtml();
+  shell.classList.remove("minimized");
+  shell.classList.add("show");
+  shell.setAttribute("aria-hidden", "false");
+  setUiEditFabActive(true);
+}
+
+function minimizeUiEditModal() {
+  const shell = uiEditShell();
+  if (!shell) return;
+  shell.classList.remove("show");
+  shell.classList.add("minimized");
+  shell.setAttribute("aria-hidden", "false");
+  setUiEditFabActive(true);
 }
 
 function closeUiEditModal() {
-  document.getElementById("ui-edit-modal").classList.remove("show");
-  document.getElementById("btn-ui-edit").classList.remove("active");
+  const shell = uiEditShell();
+  if (!shell) return;
+  shell.classList.remove("show", "minimized");
+  shell.setAttribute("aria-hidden", "true");
+  setUiEditFabActive(false);
+}
+
+function isUiEditOpen() {
+  const shell = uiEditShell();
+  return shell && (shell.classList.contains("show") || shell.classList.contains("minimized"));
 }
 
 function readUiLabelsFromForm() {
@@ -1198,9 +1285,7 @@ function resetUiLabels() {
 }
 
 function buildUiEditFormDefaults() {
-  if (document.getElementById("ui-edit-modal").classList.contains("show")) {
-    openUiEditModal();
-  }
+  if (isUiEditOpen()) openUiEditModal();
 }
 
 function loadStoredUiLabels() {
@@ -2885,8 +2970,9 @@ loadStoredUiLabels();
 applyUILabels();
 document.getElementById("btn-theme").addEventListener("click", toggleTheme);
 document.getElementById("btn-ui-edit").addEventListener("click", openUiEditModal);
-document.getElementById("ui-edit-modal").addEventListener("click", (e) => {
-  if (e.target.id === "ui-edit-modal") closeUiEditModal();
+document.getElementById("ui-edit-dock").addEventListener("click", openUiEditModal);
+document.getElementById("ui-edit-overlay").addEventListener("click", (e) => {
+  if (e.target.id === "ui-edit-overlay") minimizeUiEditModal();
 });
 loadCSVText(EMBEDDED_CSV, false);
 updateDataStatus();
