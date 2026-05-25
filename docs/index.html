@@ -134,6 +134,45 @@
     padding: 24px;
   }
   .modal-backdrop.show { display: flex; }
+  .modal-backdrop.alert-center { z-index: 2100; }
+  .modal.alert-modal {
+    max-width: 560px;
+    border: 3px solid var(--yellow);
+    box-shadow: 0 0 0 6px rgba(244,185,66,0.25), 0 24px 60px rgba(6,32,74,0.45);
+  }
+  .modal.alert-modal .modal-header {
+    background: linear-gradient(135deg, #b45309, var(--orange));
+  }
+  .alert-icon-wrap {
+    text-align: center; font-size: 3rem; line-height: 1;
+    margin: 8px 0 16px; animation: alertPulse 1.4s ease-in-out infinite;
+  }
+  @keyframes alertPulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.08); opacity: 0.92; }
+  }
+  .column-alert-lead {
+    font-size: 0.95rem; line-height: 1.55; color: var(--text-1);
+    margin-bottom: 14px; font-weight: 500;
+  }
+  .column-alert-box {
+    background: #fff8e6; border: 1px solid rgba(244,185,66,0.55);
+    border-radius: 10px; padding: 12px 14px; margin-bottom: 14px;
+    font-size: 0.85rem; line-height: 1.5; color: #7c4a03;
+  }
+  .column-alert-box.danger {
+    background: #fef2f2; border-color: rgba(192,57,43,0.45); color: #922b21;
+  }
+  .column-guide-list {
+    margin: 0; padding: 0 0 0 18px; font-size: 0.82rem; line-height: 1.55;
+    color: var(--text-2);
+  }
+  .column-guide-list li { margin-bottom: 4px; }
+  .column-guide-list strong { color: var(--blue); }
+  .column-alert-check {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 0.78rem; color: var(--text-2); margin-top: 12px;
+  }
   .modal {
     background: var(--white);
     border-radius: 16px;
@@ -766,6 +805,35 @@
   <div class="drop-message">Solte o arquivo CSV aqui para atualizar o dashboard</div>
 </div>
 
+<!-- ALERTA: formato da planilha (centro da tela) -->
+<div class="modal-backdrop alert-center" id="column-alert-modal" role="alertdialog" aria-labelledby="column-alert-title">
+  <div class="modal alert-modal">
+    <div class="modal-header">
+      <h3 id="column-alert-title">⚠️ Formato da planilha</h3>
+      <button class="modal-close" type="button" onclick="closeColumnAlert()" aria-label="Fechar">×</button>
+    </div>
+    <div class="modal-body" id="column-alert-body">
+      <div class="alert-icon-wrap" aria-hidden="true">⚠️</div>
+      <p class="column-alert-lead">
+        Você alterou os dados. Para o painel ler <strong>corretamente</strong>, a planilha precisa usar
+        <strong>as mesmas colunas</strong> do modelo abaixo (nomes no cabeçalho ou ordem fixa de 11 colunas).
+      </p>
+      <div id="column-alert-extra"></div>
+      <p style="font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--blue);margin:12px 0 8px;">
+        Colunas esperadas no CSV
+      </p>
+      <ul class="column-guide-list" id="column-guide-list"></ul>
+      <label class="column-alert-check">
+        <input type="checkbox" id="column-alert-dismiss-session">
+        Entendi — não mostrar de novo nesta sessão
+      </label>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-modal primary" type="button" onclick="closeColumnAlert()">Entendi</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL: Salvar versão atualizada (prompt de nome) -->
 <div class="modal-backdrop" id="save-modal">
   <div class="modal">
@@ -866,7 +934,7 @@ ASSISTENTE EXEMPLO F;ASSISTENTE EXEMPLO F;CIDADE EPSILON;ATENDIMENTO;UNIDADE EPS
 TECNICO EXEMPLO E;TECNICO EXEMPLO E;CIDADE DELTA;LOGÍSTICA;UNIDADE DELTA;01/07/2025;1;02/07/2025;B34;;39
 ANALISTA EXEMPLO B;ANALISTA EXEMPLO B;CIDADE BETA - 2ª REGIÃO;DIRETORIA EXEMPLO;UNIDADE BETA;14/07/2025;90;12/10/2025;F32;;42
 `;
-const GENERATED_AT = "25/05/2026 19:09";
+const GENERATED_AT = "25/05/2026 16:16";
 const UPDATED_BY = "Importação inicial";
 const UPDATE_HISTORY = [];
 // UPDATE_HISTORY é um array: [{name, when, records}, ...] em ordem cronológica.
@@ -1375,6 +1443,103 @@ function splitCSVLine(line, delim = ";") {
   }
   cells.push(cur);
   return cells.map(c => cleanCell(c));
+}
+
+/** Guia de colunas exibido no alerta central. */
+const COLUMN_GUIDE = [
+  { key: "cargo_ocupado", required: true, title: "Cargo / item", headers: "CARGO ATUAL" },
+  { key: "cargo_origem", required: false, title: "Origem", headers: "CARGO DE ORIGEM" },
+  { key: "lotacao", required: false, title: "Local / área", headers: "ÁREA DE EXERCÍCIO" },
+  { key: "setor", required: false, title: "Setor", headers: "LOTAÇÃO II" },
+  { key: "superintendencia", required: false, title: "Regional / grupo", headers: "LOTAÇÃO III" },
+  { key: "data_inicio", required: true, title: "Data de início", headers: "( INÍCIO DO AFASTAMENTO )" },
+  { key: "dias", required: false, title: "Quantidade de dias", headers: "QUANTIDADE DE DIAS DE AFASTAMENTOS" },
+  { key: "data_fim", required: false, title: "Data prevista retorno", headers: "DATA PREVISTA PARA O RETORNO" },
+  { key: "cid_raw", required: false, title: "Código CID", headers: "CID 1 / CID" },
+  { key: "idade", required: false, title: "Idade", headers: "IDADE" },
+];
+
+function renderColumnGuideList() {
+  const ul = document.getElementById("column-guide-list");
+  if (!ul) return;
+  ul.innerHTML = COLUMN_GUIDE.map(c => {
+    const req = c.required ? ' <strong>(obrigatória)</strong>' : "";
+    return `<li><strong>${escapeHtml(c.title)}</strong>${req} — cabeçalho: «${escapeHtml(c.headers)}»</li>`;
+  }).join("") +
+    `<li><strong>Sem cabeçalho?</strong> Use a ordem fixa das 11 primeiras colunas (como em <code>data/planilha.exemplo.csv</code>).</li>`;
+}
+
+function inspectCSVColumns(text) {
+  if (!text || !text.trim()) {
+    return { usedFallback: true, hasHeader: false, missingRequired: ["cargo_ocupado", "data_inicio"], warnings: ["Arquivo vazio"] };
+  }
+  if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
+  const rawLines = text.split(/\r?\n/).filter(l => l && l.trim());
+  const delim = detectDelimiter(rawLines);
+  const parsed = [];
+  for (const line of rawLines) {
+    const cells = splitCSVLine(line, delim);
+    if (!cells.some(c => c)) continue;
+    parsed.push(cells);
+  }
+  const headerIdx = findHeaderRowIndex(parsed);
+  const hasHeader = headerIdx >= 0;
+  let colMap = null;
+  let usedFallback = false;
+  if (hasHeader) {
+    colMap = finalizeColMap(parsed[headerIdx], findColumnMap(parsed[headerIdx]));
+  } else {
+    usedFallback = true;
+    colMap = { ...DEFAULT_COL_MAP };
+  }
+  const missingRequired = COLUMN_GUIDE.filter(c => c.required && colMap[c.key] === undefined).map(c => c.key);
+  const warnings = [];
+  if (usedFallback) {
+    warnings.push("Cabeçalho não reconhecido — o painel assumiu a ordem fixa das 11 colunas.");
+  }
+  if (missingRequired.length) {
+    warnings.push("Colunas obrigatórias não encontradas no cabeçalho: " +
+      missingRequired.map(k => COLUMN_GUIDE.find(c => c.key === k)?.title || k).join(", "));
+  }
+  return { usedFallback, hasHeader, missingRequired, warnings, colMap };
+}
+
+function shouldShowColumnAlert() {
+  try {
+    return sessionStorage.getItem(APP_FILE_PREFIX + "-column-alert-off") !== "1";
+  } catch (_) {
+    return true;
+  }
+}
+
+function showColumnFormatAlert(inspection) {
+  if (!shouldShowColumnAlert()) return;
+  renderColumnGuideList();
+  const extra = document.getElementById("column-alert-extra");
+  if (extra) {
+    let boxes = "";
+    if (inspection && inspection.warnings && inspection.warnings.length) {
+      boxes = inspection.warnings.map(w =>
+        `<div class="column-alert-box danger"><strong>Atenção:</strong> ${escapeHtml(w)}</div>`
+      ).join("");
+    } else if (inspection && inspection.usedFallback) {
+      boxes = `<div class="column-alert-box danger"><strong>Atenção:</strong> ${escapeHtml(inspection.warnings[0] || "Verifique se as colunas estão na ordem correta.")}</div>`;
+    } else {
+      boxes = `<div class="column-alert-box">Separador detectado: use <strong>;</strong> (ponto e vírgula). Salve no Excel como <strong>CSV UTF-8</strong>.</div>`;
+    }
+    extra.innerHTML = boxes;
+  }
+  const modal = document.getElementById("column-alert-modal");
+  if (modal) modal.classList.add("show");
+}
+
+function closeColumnAlert() {
+  const modal = document.getElementById("column-alert-modal");
+  const chk = document.getElementById("column-alert-dismiss-session");
+  if (chk && chk.checked) {
+    try { sessionStorage.setItem(APP_FILE_PREFIX + "-column-alert-off", "1"); } catch (_) {}
+  }
+  if (modal) modal.classList.remove("show");
 }
 
 function diagnoseCSV(text) {
@@ -2217,6 +2382,7 @@ function loadCSVText(text, isUserUpload=false) {
     if (isUserUpload) {
       IS_MODIFIED = true;
       updateDataStatus();
+      showColumnFormatAlert(inspectCSVColumns(text));
       showToast(`✓ ${rows.length} registros carregados — clique em "Salvar versão atualizada" para preservar`, "success");
     } else {
       showToast(`✓ ${rows.length} registros carregados`, "success");
@@ -2435,6 +2601,10 @@ document.getElementById("csv-input").addEventListener("change", (e) => {
   if (!file) return;
   readPlanilhaFile(file, text => loadCSVText(text, true));
   e.target.value = "";
+});
+
+document.getElementById("column-alert-modal").addEventListener("click", (e) => {
+  if (e.target.id === "column-alert-modal") closeColumnAlert();
 });
 
 const overlay = document.getElementById("drop-overlay");
