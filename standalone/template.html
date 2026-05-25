@@ -23,18 +23,21 @@
     --border:      #dde5f0;
     --border-dark: #b6c2d4;
     --text-1:      __THEME_TEXT_PRIMARY__;
-    --text-2:      #5a6b85;
-    --text-3:      #94a3b8;
+    --text-2:      #3d4f66;
+    --text-3:      #64748b;
     --surface:     #ffffff;
-    --surface-2:   #f4f7fb;
+    --surface-2:   #eef2f8;
     --header-sub:  #cfdaf0;
     --shadow:      rgba(10, 44, 91, 0.12);
-    --chart-grid:  #dde5f0;
-    --chart-glow:  rgba(29, 79, 145, 0.35);
-    --neon-1:      #1d4f91;
-    --neon-2:      #4a7cc1;
-    --neon-3:      #f4b942;
-    --bar-gradient: linear-gradient(90deg, var(--neon-1), var(--neon-2), var(--neon-3));
+    --chart-grid:  #b8c5d9;
+    --chart-glow:  rgba(10, 61, 122, 0.22);
+    --chart-label: #0a3d7a;
+    --chart-accent:#b45309;
+    --chart-center:#0a3d7a;
+    --neon-1:      #0a3d7a;
+    --neon-2:      #1d5fad;
+    --neon-3:      #b45309;
+    --bar-gradient: linear-gradient(90deg, #0a3d7a 0%, #1d5fad 55%, #c47a08 100%);
     --mesh-a:      transparent;
     --mesh-b:      transparent;
   }
@@ -62,6 +65,9 @@
     --shadow:      rgba(0, 0, 0, 0.45);
     --chart-grid:  rgba(94, 184, 255, 0.12);
     --chart-glow:  rgba(56, 189, 248, 0.55);
+    --chart-label: #fbbf24;
+    --chart-accent:#38bdf8;
+    --chart-center:#7dd3fc;
     --neon-1:      #06b6d4;
     --neon-2:      #8b5cf6;
     --neon-3:      #fbbf24;
@@ -385,7 +391,7 @@
   .kpi .label { font-size: 0.7rem; color: var(--text-2); text-transform: uppercase; letter-spacing: 0.1em; font-weight: 600; margin-bottom: 10px; }
   .kpi .value { font-size: 2.05rem; font-weight: 800; color: var(--blue); line-height: 1; letter-spacing: -0.02em; }
   .kpi.c2 .value { color: #b8801c; }
-  .kpi.c3 .value { color: var(--blue-light); }
+  .kpi.c3 .value { color: var(--blue-medium); }
   .kpi.c4 .value { color: var(--red); }
   .kpi.c5 .value { color: var(--green); }
   .kpi .sub { font-size: 0.75rem; color: var(--text-2); margin-top: 6px; }
@@ -548,6 +554,9 @@
     content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
     background: linear-gradient(90deg, var(--neon-1), var(--neon-2), var(--neon-3));
     opacity: 0.95;
+    box-shadow: none;
+  }
+  [data-theme="dark"] .chart-card::before {
     box-shadow: 0 0 16px var(--chart-glow);
   }
   .chart-card::after {
@@ -557,6 +566,9 @@
   .timeline-svg { width: 100%; height: 320px; display: block; }
   .donut-svg {
     width: 260px; height: 260px; flex-shrink: 0;
+    filter: drop-shadow(0 3px 12px rgba(10, 44, 91, 0.18));
+  }
+  [data-theme="dark"] .donut-svg {
     filter: drop-shadow(0 0 24px var(--chart-glow));
   }
   .donut-wrap { display: flex; align-items: center; gap: 28px; flex-wrap: wrap; }
@@ -570,7 +582,7 @@
   .legend-item:hover { transform: translateX(4px); box-shadow: 0 4px 12px rgba(10,44,91,0.08); }
   .legend-dot { width: 14px; height: 14px; border-radius: 4px; flex-shrink: 0; box-shadow: 0 2px 6px rgba(0,0,0,0.12); }
   .legend-label { flex: 1; color: var(--text-1); font-weight: 500; }
-  .legend-pct { font-weight: 800; color: var(--blue); font-variant-numeric: tabular-nums; }
+  .legend-pct { font-weight: 800; color: var(--chart-label, var(--blue)); font-variant-numeric: tabular-nums; }
   .bar-row { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
   .bar-row:hover .bar-fill { filter: brightness(1.05); }
   .bar-label {
@@ -593,8 +605,11 @@
     width: var(--bar-w, 0%);
     background: var(--bar-gradient);
     transition: width 0.9s cubic-bezier(.22,1,.36,1);
-    box-shadow: 0 0 14px var(--chart-glow), inset 0 1px 0 rgba(255,255,255,0.2);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.25);
     position: relative;
+  }
+  [data-theme="dark"] .bar-fill {
+    box-shadow: 0 0 14px var(--chart-glow), inset 0 1px 0 rgba(255,255,255,0.2);
   }
   .bar-fill::after {
     content: ''; position: absolute; top: 0; left: 0; right: 0; height: 40%;
@@ -602,7 +617,7 @@
     border-radius: 10px 10px 0 0;
   }
   .bar-fill.solid { background: var(--bar-color, var(--bar-gradient)); }
-  .bar-val { font-size: 0.82rem; font-weight: 800; color: var(--blue); width: 52px; text-align: right; font-variant-numeric: tabular-nums; }
+  .bar-val { font-size: 0.82rem; font-weight: 800; color: var(--chart-label, var(--blue)); width: 52px; text-align: right; font-variant-numeric: tabular-nums; }
 
   /* FILE DROP */
   .drop-overlay {
@@ -1275,6 +1290,7 @@ let APP_THEME = __APP_THEME__;
 function syncChartColors() {
   const cs = getComputedStyle(document.documentElement);
   const v = (name, fb) => (cs.getPropertyValue(name).trim() || fb);
+  const isDark = document.documentElement.getAttribute("data-theme") === "dark";
   return {
     blue: v("--blue", "#0a2c5b"),
     blueDark: v("--blue-dark", "#06204a"),
@@ -1285,18 +1301,49 @@ function syncChartColors() {
     red: v("--red", "#c0392b"),
     orange: v("--orange", "#dd6b20"),
     green: v("--green", "#2f855a"),
-    text2: v("--text-2", "#5a6b85"),
-    text3: v("--text-3", "#94a3b8"),
-    border: v("--chart-grid", "#dde5f0"),
+    text2: v("--text-2", "#3d4f66"),
+    text3: v("--text-3", "#64748b"),
+    border: v("--chart-grid", "#b8c5d9"),
     white: v("--white", "#ffffff"),
     offwhite: v("--off-white", "#f4f7fb"),
-    neon1: v("--neon-1", "#1d4f91"),
-    neon2: v("--neon-2", "#4a7cc1"),
-    neon3: v("--neon-3", "#f4b942"),
-    glow: v("--chart-glow", "rgba(29,79,145,0.35)"),
+    neon1: v("--neon-1", "#0a3d7a"),
+    neon2: v("--neon-2", "#1d5fad"),
+    neon3: v("--neon-3", "#b45309"),
+    chartLabel: v("--chart-label", isDark ? "#fbbf24" : "#0a3d7a"),
+    chartAccent: v("--chart-accent", isDark ? "#38bdf8" : "#b45309"),
+    chartCenter: v("--chart-center", isDark ? "#7dd3fc" : "#0a3d7a"),
+    donutEnd: isDark ? v("--blue-dark", "#06204a") : v("--neon-1", "#0a3d7a"),
+    glow: v("--chart-glow", "rgba(10,61,122,0.22)"),
+    isDark,
   };
 }
 let COLORS = syncChartColors();
+
+function chapterColorMap() {
+  const c = COLORS;
+  if (c.isDark) {
+    return {
+      "A00-B99": "#9b6b3f", "C00-D48": "#7c2d12", "D50-D89": "#dc2626",
+      "E00-E90": "#f59e0b", "F00-F99": c.blueMedium, "G00-G99": "#7c5cbf",
+      "H00-H59": "#0891b2", "H60-H95": "#0e7490",
+      "I00-I99": c.red,  "J00-J99": c.blueLight, "K00-K93": "#a16207",
+      "L00-L99": "#db2777", "M00-M99": c.green, "N00-N99": "#0d9488",
+      "O00-O99": "#be185d", "P00-P96": "#7e22ce", "Q00-Q99": "#a855f7",
+      "R00-R99": c.yellow, "S00-T98": c.orange, "V01-Y98": "#374151",
+      "Z00-Z99": c.text2, "U00-U99": "#94a3b8",
+    };
+  }
+  return {
+    "A00-B99": "#7c4a1e", "C00-D48": "#9a3412", "D50-D89": "#b91c1c",
+    "E00-E90": "#b45309", "F00-F99": "#0a3d7a", "G00-G99": "#5b21b6",
+    "H00-H59": "#0e7490", "H60-H95": "#155e75",
+    "I00-I99": "#b91c1c", "J00-J99": "#1d5fad", "K00-K93": "#92400e",
+    "L00-L99": "#be185d", "M00-M99": "#15803d", "N00-N99": "#0f766e",
+    "O00-O99": "#9d174d", "P00-P96": "#6b21a8", "Q00-Q99": "#7c3aed",
+    "R00-R99": "#b45309", "S00-T98": "#c2410c", "V01-Y98": "#1e293b",
+    "Z00-Z99": "#475569", "U00-U99": "#64748b",
+  };
+}
 
 function applyTheme(theme, persist) {
   const t = theme === "dark" ? "dark" : "light";
@@ -1331,17 +1378,6 @@ function loadStoredTheme() {
     applyTheme("light", false);
   }
 }
-
-const CHAPTER_COLORS = {
-  "A00-B99": "#9b6b3f", "C00-D48": "#7c2d12", "D50-D89": "#dc2626",
-  "E00-E90": "#f59e0b", "F00-F99": COLORS.blueMedium, "G00-G99": "#7c5cbf",
-  "H00-H59": "#0891b2", "H60-H95": "#0e7490",
-  "I00-I99": COLORS.red,  "J00-J99": COLORS.blueLight, "K00-K93": "#a16207",
-  "L00-L99": "#db2777", "M00-M99": COLORS.green, "N00-N99": "#0d9488",
-  "O00-O99": "#be185d", "P00-P96": "#7e22ce", "Q00-Q99": "#a855f7",
-  "R00-R99": COLORS.yellow, "S00-T98": COLORS.orange, "V01-Y98": "#374151",
-  "Z00-Z99": COLORS.text2, "U00-U99": "#94a3b8",
-};
 
 /* ---------- ESTADO ---------- */
 let ALL_ROWS = [];
@@ -2166,7 +2202,7 @@ function chartSvgDefs() {
       <stop offset="100%" stop-color="${COLORS.neon3}"/>
     </linearGradient>
     <linearGradient id="${uid}-area" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="${COLORS.neon2}" stop-opacity="0.55"/>
+      <stop offset="0%" stop-color="${COLORS.neon2}" stop-opacity="${COLORS.isDark ? 0.55 : 0.42}"/>
       <stop offset="100%" stop-color="${COLORS.neon1}" stop-opacity="0"/>
     </linearGradient>
     <linearGradient id="${uid}-line" x1="0" y1="0" x2="1" y2="0">
@@ -2177,7 +2213,7 @@ function chartSvgDefs() {
     ${[0,1,2,3,4,5,6,7].map(i => `
     <linearGradient id="${uid}-don${i}" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0%" stop-color="${[COLORS.neon1,COLORS.neon2,COLORS.neon3,COLORS.blueLight,COLORS.green,COLORS.orange,COLORS.red,COLORS.blueMedium][i]}"/>
-      <stop offset="100%" stop-color="${COLORS.blueDark}"/>
+      <stop offset="100%" stop-color="${COLORS.donutEnd}"/>
     </linearGradient>`).join("")}
     <filter id="${uid}-glow" x="-50%" y="-50%" width="200%" height="200%">
       <feGaussianBlur stdDeviation="3" result="b"/>
@@ -2253,9 +2289,10 @@ function renderTimeline(rows) {
     const x = pad.l + i * step + (step - barW) / 2;
     const h = Math.max(2, (d.casos / max) * innerH);
     const y = baseY - h;
-    barsHtml += `<rect x="${x}" y="${y}" width="${barW}" height="${h}" fill="url(#${ids.bar})" rx="8" filter="url(#${ids.shadow})"><title>${d.label}: ${d.casos} eventos · ${fmtInt(d.dias)} dias</title></rect>`;
+    const barFilter = COLORS.isDark ? ` filter="url(#${ids.shadow})"` : "";
+    barsHtml += `<rect x="${x}" y="${y}" width="${barW}" height="${h}" fill="url(#${ids.bar})" rx="8"${barFilter}><title>${d.label}: ${d.casos} eventos · ${fmtInt(d.dias)} dias</title></rect>`;
     if (d.casos > 0) {
-      barsHtml += `<text x="${x + barW / 2}" y="${y - 8}" text-anchor="middle" font-size="10" font-weight="800" fill="${COLORS.neon3}">${d.casos}</text>`;
+      barsHtml += `<text x="${x + barW / 2}" y="${y - 8}" text-anchor="middle" font-size="10" font-weight="800" fill="${COLORS.chartLabel}">${d.casos}</text>`;
     }
     labelsHtml += `<text x="${pad.l + i * step + step / 2}" y="${H - 14}" text-anchor="middle" font-size="10" font-weight="600" fill="${COLORS.text2}">${d.label}</text>`;
   });
@@ -2263,13 +2300,15 @@ function renderTimeline(rows) {
   let lineHtml = "";
   if (linePts.length > 1) {
     const pts = linePts.map(p => `${p.x},${p.y}`).join(" ");
-    lineHtml += `<polyline points="${pts}" fill="none" stroke="url(#${ids.line})" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" filter="url(#${ids.glow})" opacity="0.35"/>`;
-    lineHtml += `<polyline points="${pts}" fill="none" stroke="url(#${ids.line})" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>`;
+    if (COLORS.isDark) {
+      lineHtml += `<polyline points="${pts}" fill="none" stroke="url(#${ids.line})" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" filter="url(#${ids.glow})" opacity="0.35"/>`;
+    }
+    lineHtml += `<polyline points="${pts}" fill="none" stroke="url(#${ids.line})" stroke-width="${COLORS.isDark ? 2.5 : 3}" stroke-linecap="round" stroke-linejoin="round"/>`;
   }
   linePts.forEach((p, i) => {
     const d = data[i];
-    lineHtml += `<circle cx="${p.x}" cy="${p.y}" r="8" fill="${COLORS.neon3}" opacity="0.2"/>`;
-    lineHtml += `<circle cx="${p.x}" cy="${p.y}" r="5" fill="${COLORS.neon3}" stroke="${COLORS.white}" stroke-width="2"><title>${d.label} · média móvel: ${d.mm3.toFixed(1)}</title></circle>`;
+    lineHtml += `<circle cx="${p.x}" cy="${p.y}" r="8" fill="${COLORS.chartAccent}" opacity="0.2"/>`;
+    lineHtml += `<circle cx="${p.x}" cy="${p.y}" r="5" fill="${COLORS.chartAccent}" stroke="${COLORS.white}" stroke-width="2"><title>${d.label} · média móvel: ${d.mm3.toFixed(1)}</title></circle>`;
   });
 
   const legendHtml = `
@@ -2277,7 +2316,7 @@ function renderTimeline(rows) {
       <rect x="0" y="-11" width="14" height="14" fill="url(#${ids.bar})" rx="4"/>
       <text x="20" y="1" font-size="11" font-weight="700" fill="${COLORS.text2}">Eventos / mês</text>
       <line x1="155" y1="-4" x2="178" y2="-4" stroke="url(#${ids.line})" stroke-width="3" stroke-linecap="round"/>
-      <circle cx="166" cy="-4" r="5" fill="${COLORS.neon3}" stroke="${COLORS.white}" stroke-width="1.5"/>
+      <circle cx="166" cy="-4" r="5" fill="${COLORS.chartAccent}" stroke="${COLORS.white}" stroke-width="1.5"/>
       <text x="186" y="1" font-size="11" font-weight="700" fill="${COLORS.text2}">Média móvel 3 meses</text>
     </g>`;
 
@@ -2333,7 +2372,7 @@ function renderDonut(svgId, legendId, dataArr, colorMap) {
   const center = `
     <circle cx="${cx}" cy="${cy}" r="${rIn - 2}" fill="${COLORS.offwhite}" stroke="${COLORS.border}" stroke-width="1"/>
     <circle cx="${cx}" cy="${cy}" r="${rIn - 8}" fill="none" stroke="${COLORS.neon2}" stroke-width="1" opacity="0.4"/>
-    <text x="${cx}" y="${cy - 2}" text-anchor="middle" font-size="28" font-weight="800" fill="${COLORS.blueLight}" font-family="Sora, sans-serif">${total}</text>
+    <text x="${cx}" y="${cy - 2}" text-anchor="middle" font-size="28" font-weight="800" fill="${COLORS.chartCenter}" font-family="Sora, sans-serif">${total}</text>
     <text x="${cx}" y="${cy + 18}" text-anchor="middle" font-size="11" font-weight="700" fill="${COLORS.text2}">TOTAL</text>`;
   svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
   svg.innerHTML = defs + `<g filter="url(#${ids.shadow})">${paths}</g>` + center;
@@ -2356,7 +2395,8 @@ function renderDonut(svgId, legendId, dataArr, colorMap) {
 
 function renderCidDonut(rows) {
   const chapters = cidChapterBreakdown(rows);
-  const palette = chapters.map(c => CHAPTER_COLORS[c.chapter] || COLORS.blueMedium);
+  const chMap = chapterColorMap();
+  const palette = chapters.map(c => chMap[c.chapter] || COLORS.blueMedium);
   // O donut espera o campo .name ou .label, então renomeia chapter→block pra reuso
   const data = chapters.map(c => ({ name: c.name, count: c.count }));
   renderDonut("cid-donut", "cid-donut-legend", data, palette);
@@ -2364,7 +2404,9 @@ function renderCidDonut(rows) {
 
 function renderDurationDonut(rows) {
   const data = durationDistribution(rows);
-  const palette = [COLORS.green, COLORS.blueLight, COLORS.yellow, COLORS.red, COLORS.text3];
+  const palette = COLORS.isDark
+    ? [COLORS.green, COLORS.blueLight, COLORS.yellow, COLORS.red, COLORS.text3]
+    : ["#15803d", "#0a3d7a", "#b45309", "#b91c1c", "#475569"];
   renderDonut("duration-donut", "duration-legend", data, palette);
 }
 
@@ -2403,7 +2445,7 @@ function renderChapterBars(rows) {
   const max = data[0].count;
   document.getElementById("chapter-bars").innerHTML = data.map(d => {
     const w = (d.count / max) * 100;
-    const color = CHAPTER_COLORS[d.chapter] || COLORS.blueMedium;
+    const color = chapterColorMap()[d.chapter] || COLORS.blueMedium;
     return `<div class="bar-row">
       <div class="bar-label" title="${d.name}">${d.name}</div>
       <div class="bar-track"><div class="bar-fill solid" style="--bar-w:${w}%;--bar-color:${color}"></div></div>
