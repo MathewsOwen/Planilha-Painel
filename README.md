@@ -5,6 +5,8 @@
 
 **Painel online (dados fictícios):** https://mathewsowen.github.io/Planilha-Painel/
 
+> Se o link ainda não abrir: **Settings → Pages → Deploy from a branch → `main` → `/docs`** (veja [docs/PAGES-SETUP.md](docs/PAGES-SETUP.md)).
+
 Transforme exportações de **CSV/Excel** em um painel executivo — KPIs, gráficos e filtros. Funciona **100% offline** (um único HTML) ou com **Streamlit** para desenvolvimento local.
 
 **English:** [README.en.md](README.en.md)

@@ -1,40 +1,31 @@
-name: Publicar painel (GitHub Pages)
+# Atualiza docs/index.html no push. Publicação: Settings → Pages → Branch main → pasta /docs
+name: Atualizar painel publicado
 
 on:
   push:
     branches: [main]
+    paths-ignore:
+      - "docs/index.html"
   workflow_dispatch:
 
 permissions:
-  contents: read
-  pages: write
-  id-token: write
-
-concurrency:
-  group: pages
-  cancel-in-progress: true
+  contents: write
 
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
 
-      - name: Build offline dashboard (sample data)
+      - name: Gerar HTML a partir da planilha de exemplo
         run: |
           cd standalone
           python build.py
-          mkdir -p ../docs
           cp dashboard.html ../docs/index.html
 
-      - uses: actions/configure-pages@v5
-
-      - uses: actions/upload-pages-artifact@v3
+      - name: Publicar em docs/index.html
+        uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          path: docs
-
-      - id: deployment
-        uses: actions/deploy-pages@v4
+          commit_message: "chore: atualiza painel em docs/index.html"
+          file_pattern: docs/index.html
+          skip_dirty_check: true
