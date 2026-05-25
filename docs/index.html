@@ -25,10 +25,65 @@
     --text-1:      #0a2c5b;
     --text-2:      #5a6b85;
     --text-3:      #94a3b8;
+    --surface:     #ffffff;
+    --surface-2:   #f4f7fb;
+    --header-sub:  #cfdaf0;
+    --shadow:      rgba(10, 44, 91, 0.12);
+    --chart-grid:  #dde5f0;
+    --chart-glow:  rgba(29, 79, 145, 0.35);
+    --neon-1:      #1d4f91;
+    --neon-2:      #4a7cc1;
+    --neon-3:      #f4b942;
+    --bar-gradient: linear-gradient(90deg, var(--neon-1), var(--neon-2), var(--neon-3));
+    --mesh-a:      transparent;
+    --mesh-b:      transparent;
+  }
+
+  [data-theme="dark"] {
+    --blue:        #5eb8ff;
+    --blue-dark:   #060d1a;
+    --blue-medium: #2563b8;
+    --blue-light:  #7dd3fc;
+    --blue-accent: #38bdf8;
+    --yellow:      #fbbf24;
+    --red:         #fb7185;
+    --orange:      #fb923c;
+    --green:       #34d399;
+    --white:       #161f33;
+    --off-white:   #0a0f1a;
+    --border:      rgba(94, 184, 255, 0.14);
+    --border-dark: rgba(94, 184, 255, 0.28);
+    --text-1:      #e8f4ff;
+    --text-2:      #8aa4c4;
+    --text-3:      #5a7a9e;
+    --surface:     rgba(22, 31, 51, 0.92);
+    --surface-2:   rgba(14, 22, 40, 0.95);
+    --header-sub:  #a8c8e8;
+    --shadow:      rgba(0, 0, 0, 0.45);
+    --chart-grid:  rgba(94, 184, 255, 0.12);
+    --chart-glow:  rgba(56, 189, 248, 0.55);
+    --neon-1:      #06b6d4;
+    --neon-2:      #8b5cf6;
+    --neon-3:      #fbbf24;
+    --bar-gradient: linear-gradient(90deg, #06b6d4 0%, #6366f1 45%, #a855f7 70%, #fbbf24 100%);
+    --mesh-a:      rgba(6, 182, 212, 0.07);
+    --mesh-b:      rgba(139, 92, 246, 0.06);
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  html, body { font-family: 'Inter', 'Segoe UI', Tahoma, sans-serif; background: var(--off-white); color: var(--text-1); }
+  html, body {
+    font-family: 'Inter', 'Segoe UI', Tahoma, sans-serif;
+    background: var(--off-white);
+    color: var(--text-1);
+    transition: background 0.35s ease, color 0.35s ease;
+  }
+  body::before {
+    content: '';
+    position: fixed; inset: 0; z-index: -1; pointer-events: none;
+    background:
+      radial-gradient(ellipse 80% 50% at 10% 0%, var(--mesh-a), transparent 55%),
+      radial-gradient(ellipse 60% 40% at 90% 100%, var(--mesh-b), transparent 50%);
+  }
 
   .wrap { max-width: 1400px; margin: 0 auto; padding: 24px; }
 
@@ -49,7 +104,7 @@
     background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 70%);
   }
   .header h1 { font-size: 1.85rem; font-weight: 800; margin-bottom: 4px; letter-spacing: -0.02em; line-height: 1.15; }
-  .header p { color: #cfdaf0; font-size: 0.9rem; }
+  .header p { color: var(--header-sub); font-size: 0.9rem; }
   .badge {
     display: inline-block;
     background: rgba(255,255,255,0.15);
@@ -272,7 +327,7 @@
 
   /* FILTER BAR */
   .filter-bar {
-    background: var(--white);
+    background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 14px;
     padding: 18px 22px;
@@ -299,7 +354,7 @@
     font-size: 0.82rem;
     color: var(--text-1);
     font-family: inherit;
-    background: var(--white);
+    background: var(--surface);
   }
   .filter-bar select:focus, .filter-bar input:focus { outline: 2px solid var(--blue-medium); }
 
@@ -311,11 +366,12 @@
     margin-bottom: 24px;
   }
   .kpi {
-    background: var(--white);
+    background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 16px;
     padding: 22px;
-    box-shadow: 0 2px 12px rgba(10,44,91,0.04);
+    box-shadow: 0 4px 24px var(--shadow);
+    backdrop-filter: blur(8px);
     position: relative; overflow: hidden;
     transition: transform .18s, box-shadow .18s;
   }
@@ -362,11 +418,12 @@
 
   /* CARD */
   .card {
-    background: var(--white);
+    background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 16px;
     padding: 22px 24px;
-    box-shadow: 0 2px 10px rgba(10,44,91,0.03);
+    box-shadow: 0 8px 32px var(--shadow);
+    backdrop-filter: blur(10px);
     margin-bottom: 16px;
     height: 100%;
   }
@@ -485,21 +542,29 @@
     margin-top: 28px;
   }
 
-  /* SVG charts */
+  /* SVG charts — visual futurista */
   .chart-card { position: relative; overflow: hidden; }
   .chart-card::before {
     content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
-    background: linear-gradient(90deg, var(--blue-medium), var(--blue-light), var(--yellow));
-    opacity: 0.85;
+    background: linear-gradient(90deg, var(--neon-1), var(--neon-2), var(--neon-3));
+    opacity: 0.95;
+    box-shadow: 0 0 16px var(--chart-glow);
   }
-  .timeline-svg { width: 100%; height: 280px; display: block; }
-  .donut-svg { width: 240px; height: 240px; flex-shrink: 0; filter: drop-shadow(0 8px 20px rgba(10,44,91,0.12)); }
+  .chart-card::after {
+    content: ''; position: absolute; inset: 0; pointer-events: none;
+    background: radial-gradient(ellipse at 50% 0%, var(--mesh-a), transparent 70%);
+  }
+  .timeline-svg { width: 100%; height: 320px; display: block; }
+  .donut-svg {
+    width: 260px; height: 260px; flex-shrink: 0;
+    filter: drop-shadow(0 0 24px var(--chart-glow));
+  }
   .donut-wrap { display: flex; align-items: center; gap: 28px; flex-wrap: wrap; }
   .donut-legend { flex: 1; min-width: 200px; }
   .legend-item {
     display: flex; align-items: center; gap: 10px; padding: 8px 10px; margin-bottom: 6px;
     font-size: 0.82rem; border-radius: 10px; border: 1px solid var(--border);
-    background: linear-gradient(90deg, var(--white), var(--offwhite));
+    background: linear-gradient(90deg, var(--surface), var(--surface-2));
     transition: transform .15s, box-shadow .15s;
   }
   .legend-item:hover { transform: translateX(4px); box-shadow: 0 4px 12px rgba(10,44,91,0.08); }
@@ -513,17 +578,30 @@
     overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   }
   .bar-track {
-    flex: 1; height: 26px;
-    background: linear-gradient(180deg, #eef3fa, var(--offwhite));
-    border-radius: 8px; overflow: hidden;
+    flex: 1; height: 28px;
+    background: var(--surface-2);
+    border-radius: 10px; overflow: hidden;
     border: 1px solid var(--border);
-    box-shadow: inset 0 1px 3px rgba(10,44,91,0.06);
+    box-shadow: inset 0 2px 8px rgba(0,0,0,0.08);
+    position: relative;
+  }
+  [data-theme="dark"] .bar-track {
+    box-shadow: inset 0 0 12px rgba(6, 182, 212, 0.08);
   }
   .bar-fill {
-    height: 100%; border-radius: 8px;
-    transition: width 0.85s cubic-bezier(.22,1,.36,1);
-    box-shadow: 0 2px 8px rgba(29,79,145,0.25);
+    height: 100%; border-radius: 10px;
+    width: var(--bar-w, 0%);
+    background: var(--bar-gradient);
+    transition: width 0.9s cubic-bezier(.22,1,.36,1);
+    box-shadow: 0 0 14px var(--chart-glow), inset 0 1px 0 rgba(255,255,255,0.2);
+    position: relative;
   }
+  .bar-fill::after {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 40%;
+    background: linear-gradient(180deg, rgba(255,255,255,0.28), transparent);
+    border-radius: 10px 10px 0 0;
+  }
+  .bar-fill.solid { background: var(--bar-color, var(--bar-gradient)); }
   .bar-val { font-size: 0.82rem; font-weight: 800; color: var(--blue); width: 52px; text-align: right; font-variant-numeric: tabular-nums; }
 
   /* FILE DROP */
@@ -580,8 +658,11 @@
   .kpi, .card, .plan-card, .city-row { animation: fadeUp 0.45s ease both; }
 
   /* Personalizar textos */
-  .fab-edit {
+  .fab-stack {
     position: fixed; bottom: 22px; right: 22px; z-index: 900;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .fab-edit {
     width: 48px; height: 48px; border-radius: 50%;
     border: 2px solid var(--white);
     background: linear-gradient(135deg, var(--blue-medium), var(--blue));
@@ -591,6 +672,18 @@
   }
   .fab-edit:hover { transform: scale(1.06); box-shadow: 0 8px 28px rgba(10,44,91,0.45); }
   .fab-edit.active { background: var(--yellow); color: var(--blue-dark); }
+  .fab-theme { font-size: 1.05rem; }
+  [data-theme="dark"] .fab-theme { background: linear-gradient(135deg, #fbbf24, #f59e0b); color: #0a0f1a; }
+
+  [data-theme="dark"] .modal { background: var(--surface); border: 1px solid var(--border); }
+  [data-theme="dark"] .modal-body input,
+  [data-theme="dark"] .filter-bar select {
+    background: var(--surface-2); color: var(--text-1); border-color: var(--border-dark);
+  }
+  [data-theme="dark"] .column-alert-box { background: rgba(251, 191, 36, 0.1); color: #fcd34d; border-color: rgba(251, 191, 36, 0.35); }
+  [data-theme="dark"] .cid-code { background: var(--surface-2); color: var(--blue-light); }
+  [data-theme="dark"] .plan-card { background: var(--surface); }
+  [data-theme="dark"] .history-row { background: var(--surface-2); }
 
   .ui-edit-grid {
     display: grid; gap: 14px; max-height: 52vh; overflow-y: auto; padding-right: 4px;
@@ -694,8 +787,8 @@
 
   <!-- TEMPORAL -->
   <div class="card chart-card">
-    <div class="card-title" data-ui-section="timeline" data-ui-icon="📈">📈 Evolução mensal (com média móvel de 3 meses)</div>
-    <svg class="timeline-svg" id="timeline"></svg>
+      <div class="card-title" data-ui-section="timeline" data-ui-icon="📈">📈 Evolução mensal (com média móvel de 3 meses)</div>
+      <svg class="timeline-svg" id="timeline" role="img" aria-label="Gráfico de evolução mensal"></svg>
   </div>
 
   <!-- CID -->
@@ -900,7 +993,10 @@
   </div>
 </div>
 
-<button type="button" class="fab-edit" id="btn-ui-edit" title="Personalizar nomes dos filtros e títulos" aria-label="Personalizar textos">✏️</button>
+<div class="fab-stack">
+  <button type="button" class="fab-edit fab-theme" id="btn-theme" title="Modo claro / noturno" aria-label="Alternar tema">🌙</button>
+  <button type="button" class="fab-edit" id="btn-ui-edit" title="Personalizar nomes dos filtros e títulos" aria-label="Personalizar textos">✏️</button>
+</div>
 
 <div class="toast" id="toast"></div>
 
@@ -934,7 +1030,11 @@ ASSISTENTE EXEMPLO F;ASSISTENTE EXEMPLO F;CIDADE EPSILON;ATENDIMENTO;UNIDADE EPS
 TECNICO EXEMPLO E;TECNICO EXEMPLO E;CIDADE DELTA;LOGÍSTICA;UNIDADE DELTA;01/07/2025;1;02/07/2025;B34;;39
 ANALISTA EXEMPLO B;ANALISTA EXEMPLO B;CIDADE BETA - 2ª REGIÃO;DIRETORIA EXEMPLO;UNIDADE BETA;14/07/2025;90;12/10/2025;F32;;42
 `;
+<<<<<<< HEAD
 const GENERATED_AT = "25/05/2026 19:16";
+=======
+const GENERATED_AT = "25/05/2026 16:26";
+>>>>>>> 873af17 (feat: modo noturno e graficos futuristas com neon e glow)
 const UPDATED_BY = "Importação inicial";
 const UPDATE_HISTORY = [];
 // UPDATE_HISTORY é um array: [{name, when, records}, ...] em ordem cronológica.
@@ -1194,11 +1294,67 @@ const CID_CHAPTERS = [
 
 const MESES_PT = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
 
-const COLORS = {
-  blue: "#0a2c5b", blueDark:"#06204a", blueMedium:"#1d4f91", blueLight:"#4a7cc1", blueAccent:"#3b82f6",
-  yellow:"#f4b942", red:"#c0392b", orange:"#dd6b20", green:"#2f855a",
-  text2:"#5a6b85", text3:"#94a3b8", border:"#dde5f0", white:"#ffffff", offwhite:"#f4f7fb"
-};
+let APP_THEME = "light";
+
+function syncChartColors() {
+  const cs = getComputedStyle(document.documentElement);
+  const v = (name, fb) => (cs.getPropertyValue(name).trim() || fb);
+  return {
+    blue: v("--blue", "#0a2c5b"),
+    blueDark: v("--blue-dark", "#06204a"),
+    blueMedium: v("--blue-medium", "#1d4f91"),
+    blueLight: v("--blue-light", "#4a7cc1"),
+    blueAccent: v("--blue-accent", "#3b82f6"),
+    yellow: v("--yellow", "#f4b942"),
+    red: v("--red", "#c0392b"),
+    orange: v("--orange", "#dd6b20"),
+    green: v("--green", "#2f855a"),
+    text2: v("--text-2", "#5a6b85"),
+    text3: v("--text-3", "#94a3b8"),
+    border: v("--chart-grid", "#dde5f0"),
+    white: v("--white", "#ffffff"),
+    offwhite: v("--off-white", "#f4f7fb"),
+    neon1: v("--neon-1", "#1d4f91"),
+    neon2: v("--neon-2", "#4a7cc1"),
+    neon3: v("--neon-3", "#f4b942"),
+    glow: v("--chart-glow", "rgba(29,79,145,0.35)"),
+  };
+}
+let COLORS = syncChartColors();
+
+function applyTheme(theme, persist) {
+  const t = theme === "dark" ? "dark" : "light";
+  document.documentElement.setAttribute("data-theme", t);
+  APP_THEME = t;
+  const btn = document.getElementById("btn-theme");
+  if (btn) {
+    btn.textContent = t === "dark" ? "☀️" : "🌙";
+    btn.title = t === "dark" ? "Ativar modo claro" : "Ativar modo noturno";
+  }
+  COLORS = syncChartColors();
+  if (persist) {
+    try { localStorage.setItem(APP_FILE_PREFIX + "-theme", t); } catch (_) {}
+  }
+  if (ALL_ROWS.length) renderAll();
+}
+
+function toggleTheme() {
+  const cur = document.documentElement.getAttribute("data-theme");
+  applyTheme(cur === "dark" ? "light" : "dark", true);
+}
+
+function loadStoredTheme() {
+  if (APP_THEME === "dark" || APP_THEME === "light") {
+    applyTheme(APP_THEME, false);
+    return;
+  }
+  try {
+    const s = localStorage.getItem(APP_FILE_PREFIX + "-theme");
+    applyTheme(s === "dark" ? "dark" : "light", false);
+  } catch (_) {
+    applyTheme("light", false);
+  }
+}
 
 const CHAPTER_COLORS = {
   "A00-B99": "#9b6b3f", "C00-D48": "#7c2d12", "D50-D89": "#dc2626",
@@ -2026,19 +2182,52 @@ function renderRecurrence(rows) {
 }
 
 function chartSvgDefs() {
+  const uid = "ch" + Date.now().toString(36).slice(-5);
   return `<defs>
-    <linearGradient id="barGradV" x1="0" y1="1" x2="0" y2="0">
-      <stop offset="0%" stop-color="${COLORS.blue}"/>
-      <stop offset="100%" stop-color="${COLORS.blueLight}"/>
+    <linearGradient id="${uid}-barV" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0%" stop-color="${COLORS.neon1}"/>
+      <stop offset="55%" stop-color="${COLORS.neon2}"/>
+      <stop offset="100%" stop-color="${COLORS.neon3}"/>
     </linearGradient>
-    <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="${COLORS.yellow}" stop-opacity="0.45"/>
-      <stop offset="100%" stop-color="${COLORS.yellow}" stop-opacity="0.02"/>
+    <linearGradient id="${uid}-area" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="${COLORS.neon2}" stop-opacity="0.55"/>
+      <stop offset="100%" stop-color="${COLORS.neon1}" stop-opacity="0"/>
     </linearGradient>
-    <filter id="chartShadow" x="-20%" y="-20%" width="140%" height="140%">
-      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="${COLORS.blue}" flood-opacity="0.15"/>
+    <linearGradient id="${uid}-line" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="${COLORS.neon1}"/>
+      <stop offset="50%" stop-color="${COLORS.neon3}"/>
+      <stop offset="100%" stop-color="${COLORS.neon2}"/>
+    </linearGradient>
+    ${[0,1,2,3,4,5,6,7].map(i => `
+    <linearGradient id="${uid}-don${i}" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="${[COLORS.neon1,COLORS.neon2,COLORS.neon3,COLORS.blueLight,COLORS.green,COLORS.orange,COLORS.red,COLORS.blueMedium][i]}"/>
+      <stop offset="100%" stop-color="${COLORS.blueDark}"/>
+    </linearGradient>`).join("")}
+    <filter id="${uid}-glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="3" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="${uid}-shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="${COLORS.glow}" flood-opacity="0.8"/>
     </filter>
   </defs>`;
+}
+
+function chartDefIds(defsHtml) {
+  const bar = defsHtml.match(/id="([^"]+)-barV"/);
+  const area = defsHtml.match(/id="([^"]+)-area"/);
+  const line = defsHtml.match(/id="([^"]+)-line"/);
+  const glow = defsHtml.match(/id="([^"]+)-glow"/);
+  const shadow = defsHtml.match(/id="([^"]+)-shadow"/);
+  const donuts = [...defsHtml.matchAll(/id="([^"]+)-don(\d)"/g)].map(m => m[1] + "-don" + m[2]);
+  return {
+    bar: bar ? bar[1] + "-barV" : "barGradV",
+    area: area ? area[1] + "-area" : "areaGrad",
+    line: line ? line[1] + "-line" : "lineGrad",
+    glow: glow ? glow[1] + "-glow" : "chartGlow",
+    shadow: shadow ? shadow[1] + "-shadow" : "chartShadow",
+    donuts,
+  };
 }
 
 function renderTimeline(rows) {
@@ -2047,12 +2236,14 @@ function renderTimeline(rows) {
   svg.innerHTML = "";
   if (!data.length) return;
 
-  const W = svg.clientWidth || 800, H = 280;
-  const pad = { l: 48, r: 24, t: 32, b: 48 };
+  const defs = chartSvgDefs();
+  const ids = chartDefIds(defs);
+  const W = svg.clientWidth || 800, H = 320;
+  const pad = { l: 52, r: 28, t: 44, b: 52 };
   const innerW = W - pad.l - pad.r;
   const innerH = H - pad.t - pad.b;
   const max = Math.max(...data.map(d => Math.max(d.casos, d.mm3, 1)), 1);
-  const barW = Math.max(8, innerW / data.length * 0.62);
+  const barW = Math.max(10, innerW / data.length * 0.58);
   const step = innerW / data.length;
   const baseY = pad.t + innerH;
 
@@ -2061,8 +2252,8 @@ function renderTimeline(rows) {
   for (let i = 0; i <= ticks; i++) {
     const y = pad.t + innerH - (i / ticks) * innerH;
     const v = Math.round((i / ticks) * max);
-    gridHtml += `<line x1="${pad.l}" y1="${y}" x2="${W - pad.r}" y2="${y}" stroke="${COLORS.border}" stroke-width="1" stroke-dasharray="${i === 0 ? '0' : '4 4'}"/>`;
-    gridHtml += `<text x="${pad.l - 10}" y="${y + 4}" text-anchor="end" font-size="10" font-weight="500" fill="${COLORS.text2}">${v}</text>`;
+    gridHtml += `<line x1="${pad.l}" y1="${y}" x2="${W - pad.r}" y2="${y}" stroke="${COLORS.border}" stroke-width="1" stroke-dasharray="${i === 0 ? '0' : '3 6'}"/>`;
+    gridHtml += `<text x="${pad.l - 12}" y="${y + 4}" text-anchor="end" font-size="10" font-weight="600" fill="${COLORS.text2}">${v}</text>`;
   }
 
   const linePts = data.map((d, i) => ({
@@ -2077,42 +2268,45 @@ function renderTimeline(rows) {
       ...linePts.map(p => `L ${p.x} ${p.y}`),
       `L ${linePts[linePts.length - 1].x} ${baseY} Z`,
     ].join(" ");
-    areaHtml = `<path d="${areaPath}" fill="url(#areaGrad)" stroke="none"/>`;
+    areaHtml = `<path d="${areaPath}" fill="url(#${ids.area})" stroke="none"/>`;
   }
 
   let barsHtml = "";
   let labelsHtml = "";
   data.forEach((d, i) => {
     const x = pad.l + i * step + (step - barW) / 2;
-    const h = (d.casos / max) * innerH;
+    const h = Math.max(2, (d.casos / max) * innerH);
     const y = baseY - h;
-    barsHtml += `<rect x="${x}" y="${y}" width="${barW}" height="${h}" fill="url(#barGradV)" rx="6" filter="url(#chartShadow)"><title>${d.label}: ${d.casos} eventos · ${fmtInt(d.dias)} dias</title></rect>`;
+    barsHtml += `<rect x="${x}" y="${y}" width="${barW}" height="${h}" fill="url(#${ids.bar})" rx="8" filter="url(#${ids.shadow})"><title>${d.label}: ${d.casos} eventos · ${fmtInt(d.dias)} dias</title></rect>`;
     if (d.casos > 0) {
-      barsHtml += `<text x="${x + barW / 2}" y="${y - 6}" text-anchor="middle" font-size="10" font-weight="800" fill="${COLORS.blue}">${d.casos}</text>`;
+      barsHtml += `<text x="${x + barW / 2}" y="${y - 8}" text-anchor="middle" font-size="10" font-weight="800" fill="${COLORS.neon3}">${d.casos}</text>`;
     }
-    labelsHtml += `<text x="${pad.l + i * step + step / 2}" y="${H - 12}" text-anchor="middle" font-size="10" font-weight="500" fill="${COLORS.text2}">${d.label}</text>`;
+    labelsHtml += `<text x="${pad.l + i * step + step / 2}" y="${H - 14}" text-anchor="middle" font-size="10" font-weight="600" fill="${COLORS.text2}">${d.label}</text>`;
   });
 
   let lineHtml = "";
   if (linePts.length > 1) {
-    lineHtml = `<polyline points="${linePts.map(p => `${p.x},${p.y}`).join(" ")}" fill="none" stroke="${COLORS.yellow}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>`;
+    const pts = linePts.map(p => `${p.x},${p.y}`).join(" ");
+    lineHtml += `<polyline points="${pts}" fill="none" stroke="url(#${ids.line})" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" filter="url(#${ids.glow})" opacity="0.35"/>`;
+    lineHtml += `<polyline points="${pts}" fill="none" stroke="url(#${ids.line})" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>`;
   }
   linePts.forEach((p, i) => {
     const d = data[i];
-    lineHtml += `<circle cx="${p.x}" cy="${p.y}" r="5" fill="${COLORS.yellow}" stroke="${COLORS.white}" stroke-width="2"><title>${d.label} · média móvel: ${d.mm3.toFixed(1)}</title></circle>`;
+    lineHtml += `<circle cx="${p.x}" cy="${p.y}" r="8" fill="${COLORS.neon3}" opacity="0.2"/>`;
+    lineHtml += `<circle cx="${p.x}" cy="${p.y}" r="5" fill="${COLORS.neon3}" stroke="${COLORS.white}" stroke-width="2"><title>${d.label} · média móvel: ${d.mm3.toFixed(1)}</title></circle>`;
   });
 
   const legendHtml = `
-    <g transform="translate(${pad.l}, 8)">
-      <rect x="0" y="-10" width="14" height="14" fill="url(#barGradV)" rx="3"/>
-      <text x="20" y="2" font-size="11" font-weight="600" fill="${COLORS.text2}">Eventos / mês</text>
-      <line x1="150" y1="-3" x2="172" y2="-3" stroke="${COLORS.yellow}" stroke-width="3" stroke-linecap="round"/>
-      <circle cx="161" cy="-3" r="4" fill="${COLORS.yellow}" stroke="${COLORS.white}" stroke-width="1.5"/>
-      <text x="180" y="2" font-size="11" font-weight="600" fill="${COLORS.text2}">Média móvel 3 meses</text>
+    <g transform="translate(${pad.l}, 10)">
+      <rect x="0" y="-11" width="14" height="14" fill="url(#${ids.bar})" rx="4"/>
+      <text x="20" y="1" font-size="11" font-weight="700" fill="${COLORS.text2}">Eventos / mês</text>
+      <line x1="155" y1="-4" x2="178" y2="-4" stroke="url(#${ids.line})" stroke-width="3" stroke-linecap="round"/>
+      <circle cx="166" cy="-4" r="5" fill="${COLORS.neon3}" stroke="${COLORS.white}" stroke-width="1.5"/>
+      <text x="186" y="1" font-size="11" font-weight="700" fill="${COLORS.text2}">Média móvel 3 meses</text>
     </g>`;
 
   svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
-  svg.innerHTML = chartSvgDefs() + gridHtml + areaHtml + barsHtml + lineHtml + labelsHtml + legendHtml;
+  svg.innerHTML = defs + gridHtml + areaHtml + barsHtml + lineHtml + labelsHtml + legendHtml;
 }
 
 function renderCidTop(rows) {
@@ -2127,7 +2321,7 @@ function renderCidTop(rows) {
     return `
       <div class="bar-row">
         <div class="bar-label"><strong style="color:var(--blue);">${c.group}</strong> · ${c.name}</div>
-        <div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:linear-gradient(90deg,${COLORS.blue},${COLORS.blueMedium},${COLORS.blueLight});"></div></div>
+        <div class="bar-track"><div class="bar-fill" style="--bar-w:${pct}%"></div></div>
         <div class="bar-val">${c.count}</div>
       </div>`;
   }).join("");
@@ -2138,7 +2332,9 @@ function renderDonut(svgId, legendId, dataArr, colorMap) {
   const legend = document.getElementById(legendId);
   if (!dataArr.length) { svg.innerHTML = ""; legend.innerHTML = ""; return; }
 
-  const W = 240, H = 240, cx = W / 2, cy = H / 2, r = 92, rIn = 58;
+  const defs = chartSvgDefs();
+  const ids = chartDefIds(defs);
+  const W = 260, H = 260, cx = W / 2, cy = H / 2, r = 100, rIn = 62;
   const total = dataArr.reduce((a, b) => a + b.count, 0) || 1;
   let acc = 0;
   let paths = "";
@@ -2151,25 +2347,31 @@ function renderDonut(svgId, legendId, dataArr, colorMap) {
     const x2 = cx + r * Math.cos(endAngle), y2 = cy + r * Math.sin(endAngle);
     const x3 = cx + rIn * Math.cos(endAngle), y3 = cy + rIn * Math.sin(endAngle);
     const x4 = cx + rIn * Math.cos(startAngle), y4 = cy + rIn * Math.sin(startAngle);
-    const color = colorMap[i % colorMap.length];
+    const gradId = ids.donuts[i % ids.donuts.length] || ids.donuts[0];
+    const solid = colorMap[i % colorMap.length];
+    const fill = typeof solid === "string" && solid.startsWith("url") ? solid : `url(#${gradId})`;
     const lbl = d.label || d.name || d.block;
     const pct = (d.count / total * 100).toFixed(1);
-    paths += `<path d="M ${x1} ${y1} A ${r} ${r} 0 ${large} 1 ${x2} ${y2} L ${x3} ${y3} A ${rIn} ${rIn} 0 ${large} 0 ${x4} ${y4} Z" fill="${color}" stroke="${COLORS.white}" stroke-width="2.5" opacity="0.95"><title>${lbl}: ${d.count} (${pct}%)</title></path>`;
+    paths += `<path d="M ${x1} ${y1} A ${r} ${r} 0 ${large} 1 ${x2} ${y2} L ${x3} ${y3} A ${rIn} ${rIn} 0 ${large} 0 ${x4} ${y4} Z" fill="${fill}" stroke="${COLORS.white}" stroke-width="2" opacity="0.98"><title>${lbl}: ${d.count} (${pct}%)</title></path>`;
   });
   const center = `
-    <circle cx="${cx}" cy="${cy}" r="${rIn - 4}" fill="${COLORS.white}" opacity="0.95"/>
-    <text x="${cx}" y="${cy - 4}" text-anchor="middle" font-size="26" font-weight="800" fill="${COLORS.blue}" font-family="Sora, sans-serif">${total}</text>
-    <text x="${cx}" y="${cy + 16}" text-anchor="middle" font-size="11" font-weight="600" fill="${COLORS.text2}">total</text>`;
+    <circle cx="${cx}" cy="${cy}" r="${rIn - 2}" fill="${COLORS.offwhite}" stroke="${COLORS.border}" stroke-width="1"/>
+    <circle cx="${cx}" cy="${cy}" r="${rIn - 8}" fill="none" stroke="${COLORS.neon2}" stroke-width="1" opacity="0.4"/>
+    <text x="${cx}" y="${cy - 2}" text-anchor="middle" font-size="28" font-weight="800" fill="${COLORS.blueLight}" font-family="Sora, sans-serif">${total}</text>
+    <text x="${cx}" y="${cy + 18}" text-anchor="middle" font-size="11" font-weight="700" fill="${COLORS.text2}">TOTAL</text>`;
   svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
-  svg.innerHTML = chartSvgDefs() + `<g filter="url(#chartShadow)">${paths}</g>` + center;
+  svg.innerHTML = defs + `<g filter="url(#${ids.shadow})">${paths}</g>` + center;
 
   legend.innerHTML = dataArr.map((d, i) => {
     const color = colorMap[i % colorMap.length];
     const lbl = d.label || d.name || d.block;
     const pct = (d.count / total * 100).toFixed(1);
+    const dotStyle = typeof color === "string" && !color.startsWith("url")
+      ? `background:linear-gradient(135deg,${color},${COLORS.neon3})`
+      : `background:linear-gradient(135deg,${COLORS.neon1},${COLORS.neon2})`;
     return `
       <div class="legend-item">
-        <div class="legend-dot" style="background:linear-gradient(135deg,${color},${COLORS.white})"></div>
+        <div class="legend-dot" style="${dotStyle}"></div>
         <div class="legend-label">${lbl}</div>
         <div class="legend-pct">${pct}%</div>
       </div>`;
@@ -2204,7 +2406,7 @@ function renderCargo(rows) {
     const w = (d.casos / maxC) * 100;
     return `<div class="bar-row">
       <div class="bar-label">${d.cargo}</div>
-      <div class="bar-track"><div class="bar-fill" style="width:${w}%;background:linear-gradient(90deg,${COLORS.blue},${COLORS.blueMedium});"></div></div>
+      <div class="bar-track"><div class="bar-fill" style="--bar-w:${w}%"></div></div>
       <div class="bar-val">${d.casos}</div>
     </div>`;
   }).join("");
@@ -2213,7 +2415,7 @@ function renderCargo(rows) {
     const w = maxD ? (d.media / maxD) * 100 : 0;
     return `<div class="bar-row">
       <div class="bar-label">${d.cargo}</div>
-      <div class="bar-track"><div class="bar-fill" style="width:${w}%;background:linear-gradient(90deg,${COLORS.blueLight},${COLORS.yellow});"></div></div>
+      <div class="bar-track"><div class="bar-fill" style="--bar-w:${w}%"></div></div>
       <div class="bar-val">${d.media.toFixed(1).replace(".",",")}d</div>
     </div>`;
   }).join("");
@@ -2228,7 +2430,7 @@ function renderChapterBars(rows) {
     const color = CHAPTER_COLORS[d.chapter] || COLORS.blueMedium;
     return `<div class="bar-row">
       <div class="bar-label" title="${d.name}">${d.name}</div>
-      <div class="bar-track"><div class="bar-fill" style="width:${w}%;background:${color};"></div></div>
+      <div class="bar-track"><div class="bar-fill solid" style="--bar-w:${w}%;--bar-color:${color}"></div></div>
       <div class="bar-val">${d.count}</div>
     </div>`;
   }).join("");
@@ -2522,6 +2724,7 @@ async function downloadUpdatedHTML(authorName) {
     newHtml = newHtml.replace(/const UPDATE_HISTORY = [^;]+;/, `const UPDATE_HISTORY = ${historyJson};`);
     const labelsJson = JSON.stringify(UI_LABELS || {});
     newHtml = newHtml.replace(/let UI_LABELS = [^;]+;/, `let UI_LABELS = ${labelsJson};`);
+    newHtml = newHtml.replace(/let APP_THEME = [^;]+;/, `let APP_THEME = "${APP_THEME}";`);
 
     // 5. Download
     const blob = new Blob([newHtml], { type: "text/html;charset=utf-8" });
@@ -2639,8 +2842,10 @@ window.addEventListener("beforeunload", (e) => {
 });
 
 /* ---------- BOOT ---------- */
+loadStoredTheme();
 loadStoredUiLabels();
 applyUILabels();
+document.getElementById("btn-theme").addEventListener("click", toggleTheme);
 document.getElementById("btn-ui-edit").addEventListener("click", openUiEditModal);
 document.getElementById("ui-edit-modal").addEventListener("click", (e) => {
   if (e.target.id === "ui-edit-modal") closeUiEditModal();

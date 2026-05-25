@@ -33,7 +33,9 @@ python build.py
 
 Abra `standalone/dashboard.html` no navegador.
 
-**Personalizar textos:** clique no botão **✏️** (canto inferior direito) para renomear filtros (ex.: Cargo → Estoque, Prateleira) e títulos dos blocos. Use **Salvar versão atualizada** para gravar no arquivo HTML.
+**Modo noturno:** botão **🌙** no canto inferior direito (alterna para ☀️ no tema escuro).
+
+**Personalizar textos:** botão **✏️** — renomeie filtros (ex.: Cargo → Estoque) e títulos. **Salvar versão atualizada** grava no HTML.
 
 **Trocar planilha:** ao carregar um CSV novo, aparece um alerta central lembrando que as colunas devem ser iguais às do modelo do painel.
 
