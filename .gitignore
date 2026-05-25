@@ -1,0 +1,14 @@
+.venv/
+.empty-hooks/
+.git-rewrite/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Planilha real (dados sensíveis) — use planilha.exemplo.csv no repositório
+data/planilha.csv
+data/afastamentos.csv
+
+# HTML gerado localmente (rode: python standalone/build.py)
+standalone/dashboard.html
+standalone/dashboard-detran.html
