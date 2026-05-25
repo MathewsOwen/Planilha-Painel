@@ -35,9 +35,9 @@ Abra `standalone/dashboard.html` no navegador.
 
 **Modo noturno:** botão **🌙** no canto inferior direito (alterna para ☀️ no tema escuro).
 
-**Personalizar textos:** botão **✏️** — renomeie filtros (ex.: Cargo → Estoque) e títulos. **Salvar versão atualizada** grava no HTML.
+**Personalizar (✏️):** renomeie filtros/títulos do painel e defina o **nome exato de cada coluna no CSV** — o cabeçalho da planilha precisa ser **igual** ao configurado (só ignora maiúsculas e acentos). **Salvar versão atualizada** grava tudo no HTML.
 
-**Trocar planilha:** ao carregar um CSV novo, aparece um alerta central lembrando que as colunas devem ser iguais às do modelo do painel.
+**Trocar planilha:** ao importar CSV, o painel busca colunas pelo nome configurado; se faltar alguma obrigatória, aparece o alerta central.
 
 ### Streamlit
 

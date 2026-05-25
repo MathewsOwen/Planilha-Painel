@@ -390,6 +390,7 @@ def main():
         .replace("__APP_FOOTER__", profile["APP_FOOTER"])
         .replace("__APP_FILE_PREFIX__", profile["APP_FILE_PREFIX"])
         .replace("__UI_LABELS__", "{}")
+        .replace("__CSV_COLUMNS__", "{}")
         .replace("__APP_THEME__", '"light"')
         .replace("__THEME_BLUE__", theme["blue"])
         .replace("__THEME_BLUE_DARK__", theme["blue_dark"])

@@ -970,8 +970,9 @@
     <div class="modal-body" id="column-alert-body">
       <div class="alert-icon-wrap" aria-hidden="true">⚠️</div>
       <p class="column-alert-lead">
-        Você alterou os dados. Para o painel ler <strong>corretamente</strong>, a planilha precisa usar
-        <strong>as mesmas colunas</strong> do modelo abaixo (nomes no cabeçalho ou ordem fixa de 11 colunas).
+        O cabeçalho do CSV deve ter os <strong>mesmos nomes</strong> configurados em ✏️ Personalizar
+        (ou os padrão abaixo). Cada coluna é localizada pelo nome — <strong>tem que ser igual</strong>
+        ao da planilha (só ignora maiúsculas/minúsculas e acentos).
       </p>
       <div id="column-alert-extra"></div>
       <p style="font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--blue);margin:12px 0 8px;">
@@ -1099,12 +1100,25 @@ ASSISTENTE EXEMPLO F;ASSISTENTE EXEMPLO F;CIDADE EPSILON;ATENDIMENTO;UNIDADE EPS
 TECNICO EXEMPLO E;TECNICO EXEMPLO E;CIDADE DELTA;LOGÍSTICA;UNIDADE DELTA;01/07/2025;1;02/07/2025;B34;;39
 ANALISTA EXEMPLO B;ANALISTA EXEMPLO B;CIDADE BETA - 2ª REGIÃO;DIRETORIA EXEMPLO;UNIDADE BETA;14/07/2025;90;12/10/2025;F32;;42
 `;
-const GENERATED_AT = "25/05/2026 19:43";
+const GENERATED_AT = "25/05/2026 17:03";
 const UPDATED_BY = "Importação inicial";
 const UPDATE_HISTORY = [];
 // UPDATE_HISTORY é um array: [{name, when, records}, ...] em ordem cronológica.
 
 let UI_LABELS = {};
+let CSV_COLUMNS = {};
+const DEFAULT_CSV_COLUMNS = {
+  cargo_ocupado:      "CARGO ATUAL",
+  cargo_origem:       "CARGO DE ORIGEM",
+  lotacao:            "ÁREA DE EXERCÍCIO",
+  setor:              "LOTAÇÃO II",
+  superintendencia:   "LOTAÇÃO III",
+  data_inicio:        "INÍCIO DO AFASTAMENTO",
+  dias:               "QUANTIDADE DE DIAS DE AFASTAMENTOS",
+  data_fim:           "DATA PREVISTA PARA O RETORNO",
+  cid_raw:            "CID 1",
+  idade:              "IDADE",
+};
 const DEFAULT_UI_LABELS = {
   filters: {
     cargo:    { label: "Cargo", placeholder: "Todos" },
@@ -1146,6 +1160,16 @@ function deepMergeLabels(base, patch) {
 
 function getUILabels() {
   return deepMergeLabels(DEFAULT_UI_LABELS, UI_LABELS);
+}
+
+function getCsvColumnNames() {
+  const out = { ...DEFAULT_CSV_COLUMNS };
+  if (!CSV_COLUMNS || typeof CSV_COLUMNS !== "object") return out;
+  for (const key of Object.keys(DEFAULT_CSV_COLUMNS)) {
+    const v = CSV_COLUMNS[key];
+    if (v != null && String(v).trim()) out[key] = String(v).trim();
+  }
+  return out;
 }
 
 function applyUILabels() {
@@ -1197,6 +1221,21 @@ function buildUiEditFormHtml() {
         <input type="text" data-ui-field="filter-ph-${key}" value="${escapeHtml(cfg.placeholder || "")}" placeholder="Ex.: Todos, Todas…">
       </div>`;
   });
+  html += '<div class="ui-edit-section-title">Nomes das colunas no CSV</div>';
+  html += `<p class="ui-edit-hint" style="margin-bottom:10px;">
+    Digite o <strong>nome exato</strong> do cabeçalho na sua planilha. O painel só lê a coluna quando o texto do CSV
+    for <strong>igual</strong> ao configurado aqui (diferença só de maiúsculas/minúsculas e acentos).
+  </p>`;
+  const csvNames = getCsvColumnNames();
+  COLUMN_GUIDE.forEach(c => {
+    const req = c.required ? " *" : "";
+    html += `
+      <div class="ui-edit-row">
+        <label>${escapeHtml(c.title)}${req}</label>
+        <input type="text" data-csv-col="${c.key}" value="${escapeHtml(csvNames[c.key] || "")}"
+          placeholder="${escapeHtml(DEFAULT_CSV_COLUMNS[c.key] || "")}">
+      </div>`;
+  });
   html += '<div class="ui-edit-section-title">Títulos dos blocos</div>';
   Object.keys(L.sections).forEach(key => {
     html += `
@@ -1240,6 +1279,16 @@ function isUiEditOpen() {
   return shell && (shell.classList.contains("show") || shell.classList.contains("minimized"));
 }
 
+function readCsvColumnsFromForm() {
+  const next = {};
+  COLUMN_GUIDE.forEach(c => {
+    const el = document.querySelector(`[data-csv-col="${c.key}"]`);
+    const v = (el && el.value.trim()) || DEFAULT_CSV_COLUMNS[c.key] || "";
+    if (v) next[c.key] = v;
+  });
+  return next;
+}
+
 function readUiLabelsFromForm() {
   const L = getUILabels();
   const next = { filters: {}, sections: { ...L.sections } };
@@ -1260,28 +1309,38 @@ function readUiLabelsFromForm() {
 
 function saveUiLabelsFromForm() {
   UI_LABELS = readUiLabelsFromForm();
+  CSV_COLUMNS = readCsvColumnsFromForm();
   try {
     localStorage.setItem(APP_FILE_PREFIX + "-ui-labels", JSON.stringify(UI_LABELS));
+    localStorage.setItem(APP_FILE_PREFIX + "-csv-columns", JSON.stringify(CSV_COLUMNS));
+  } catch (_) {}
+  applyUILabels();
+  if (CURRENT_CSV) loadCSVText(CURRENT_CSV, false);
+  else if (ALL_ROWS.length) {
+    populateFilters(ALL_ROWS);
+    renderAll();
+  }
+  IS_MODIFIED = true;
+  updateDataStatus();
+  closeUiEditModal();
+  showToast("✓ Personalização aplicada — confira se o CSV usa os mesmos nomes de coluna", "success");
+}
+
+function resetUiLabels() {
+  UI_LABELS = {};
+  CSV_COLUMNS = {};
+  try {
+    localStorage.removeItem(APP_FILE_PREFIX + "-ui-labels");
+    localStorage.removeItem(APP_FILE_PREFIX + "-csv-columns");
   } catch (_) {}
   applyUILabels();
   if (ALL_ROWS.length) populateFilters(ALL_ROWS);
   renderAll();
   IS_MODIFIED = true;
   updateDataStatus();
-  closeUiEditModal();
-  showToast("✓ Textos personalizados aplicados — salve o HTML para preservar", "success");
-}
-
-function resetUiLabels() {
-  UI_LABELS = {};
-  try { localStorage.removeItem(APP_FILE_PREFIX + "-ui-labels"); } catch (_) {}
-  applyUILabels();
-  if (ALL_ROWS.length) populateFilters(ALL_ROWS);
-  renderAll();
-  IS_MODIFIED = true;
-  updateDataStatus();
   buildUiEditFormDefaults();
-  showToast("✓ Textos restaurados ao padrão", "success");
+  if (CURRENT_CSV) loadCSVText(CURRENT_CSV, false);
+  showToast("✓ Textos e colunas restaurados ao padrão", "success");
 }
 
 function buildUiEditFormDefaults() {
@@ -1289,11 +1348,18 @@ function buildUiEditFormDefaults() {
 }
 
 function loadStoredUiLabels() {
-  if (UI_LABELS && Object.keys(UI_LABELS).length) return;
-  try {
-    const raw = localStorage.getItem(APP_FILE_PREFIX + "-ui-labels");
-    if (raw) UI_LABELS = JSON.parse(raw);
-  } catch (_) {}
+  if (!UI_LABELS || !Object.keys(UI_LABELS).length) {
+    try {
+      const raw = localStorage.getItem(APP_FILE_PREFIX + "-ui-labels");
+      if (raw) UI_LABELS = JSON.parse(raw);
+    } catch (_) {}
+  }
+  if (!CSV_COLUMNS || !Object.keys(CSV_COLUMNS).length) {
+    try {
+      const raw = localStorage.getItem(APP_FILE_PREFIX + "-csv-columns");
+      if (raw) CSV_COLUMNS = JSON.parse(raw);
+    } catch (_) {}
+  }
 }
 
 /* ---------- DICIONÁRIOS CID ---------- */
@@ -1490,28 +1556,10 @@ let STATE = { cargo:"", regional:"", bloco:"", ano:"", mes:"" };
 let CURRENT_CSV = "";       // CSV atualmente carregado (texto bruto)
 let IS_MODIFIED = false;    // true se usuário carregou um CSV diferente do embutido
 
-/* ---------- CSV PARSER: colunas pelo NOME do cabeçalho (posição livre) ---------- */
+/* ---------- CSV PARSER: colunas pelo nome exato configurado em ✏️ ---------- */
 function stripAccents(s) {
   return (s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 }
-
-const COLUMN_ALIASES = {
-  cargo_ocupado:      ["CARGO ATUAL"],
-  cargo_origem:       ["CARGO DE ORIGEM"],
-  lotacao:            ["AREA DE EXERCICIO", "ÁREA DE EXERCÍCIO"],
-  setor:              ["LOTACAO II", "LOTAÇÃO II"],
-  superintendencia:   ["LOTACAO III", "LOTAÇÃO III"],
-  data_inicio:        [
-    "( INICIO DO AFASTAMENTO )",
-    "( INÍCIO DO AFASTAMENTO )",
-    "INICIO DO AFASTAMENTO",
-    "INÍCIO DO AFASTAMENTO",
-  ],
-  dias:               ["QUANTIDADE DE DIAS DE AFASTAMENTOS", "QUANTIDADE DE DIAS DE AFASTAMENTO", "QUANTIDADE DE DIAS"],
-  data_fim:           ["DATA PREVISTA PARA O RETORNO", "DATA PREVISTA PARA RETORNO", "DATA DE RETORNO", "DATA FIM"],
-  cid_raw:            ["CID 1", "CID1", "CID", "COD CID", "CÓD CID", "CODIGO CID"],
-  idade:              ["IDADE"],
-};
 
 /** Ordem padrão da planilha (11 colunas, sem cabeçalho). */
 const DEFAULT_COL_MAP = {
@@ -1535,118 +1583,65 @@ function normHeader(s) {
     .trim();
 }
 
-function isInicioAfastamentoColumn(cellOrNorm) {
-  const n = normHeader(cellOrNorm);
-  if (!n) return false;
-  if (n.includes("QUANTIDADE") && n.includes("DIAS")) return false;
-  if (n.includes("RETORNO") || n.includes("PREVISTA")) return false;
-  return (n.includes("INICIO") || n.includes("INIC")) &&
-    (n.includes("AFASTAMENTO") || n.includes("AFAST"));
-}
-
-function findInicioColumnIndex(norms, used) {
-  for (let i = 0; i < norms.length; i++) {
-    if (used && used.has(i)) continue;
-    if (isInicioAfastamentoColumn(norms[i])) return i;
-  }
-  return undefined;
-}
-
-function headerMatches(cellNorm, aliasNorm, field) {
-  if (!cellNorm || !aliasNorm) return false;
-  if (field === "data_fim" && isInicioAfastamentoColumn(cellNorm)) return false;
-  if (field === "data_inicio" && isInicioAfastamentoColumn(cellNorm)) return true;
-  if (cellNorm === aliasNorm) return true;
-  if (aliasNorm.startsWith("CID") || field === "cid_raw") {
-    return cellNorm === aliasNorm || cellNorm.startsWith(aliasNorm + " ");
-  }
-  if (field === "data_inicio") {
-    return isInicioAfastamentoColumn(cellNorm) || cellNorm.includes(aliasNorm);
-  }
-  if (field === "dias") {
-    return cellNorm.includes("QUANTIDADE") && cellNorm.includes("DIAS");
-  }
-  if (field === "data_fim") {
-    return cellNorm.includes("RETORNO") || cellNorm.includes("PREVISTA")
-      || cellNorm.includes(aliasNorm);
-  }
-  return cellNorm.includes(aliasNorm) || aliasNorm.includes(cellNorm);
-}
-
-function findColumnMap(headerCells) {
+/** Localiza colunas pelo nome exato configurado (após normalizar acentos/caixa). */
+function findColumnMapExact(headerCells, names) {
   const norms = headerCells.map(normHeader);
   const map = {};
   const used = new Set();
-  for (const [field, aliases] of Object.entries(COLUMN_ALIASES)) {
-    for (const alias of aliases) {
-      const an = normHeader(alias);
-      for (let i = 0; i < norms.length; i++) {
-        if (used.has(i)) continue;
-        if (headerMatches(norms[i], an, field)) {
-          map[field] = i;
-          used.add(i);
-          break;
-        }
+  for (const [field, expected] of Object.entries(names || {})) {
+    const en = normHeader(expected);
+    if (!en) continue;
+    for (let i = 0; i < norms.length; i++) {
+      if (used.has(i)) continue;
+      if (norms[i] === en) {
+        map[field] = i;
+        used.add(i);
+        break;
       }
-      if (map[field] !== undefined) break;
     }
-  }
-  const iniIdx = findInicioColumnIndex(norms, used);
-  if (iniIdx !== undefined) {
-    map.data_inicio = iniIdx;
-    used.add(iniIdx);
   }
   return map;
 }
 
-function finalizeColMap(headerCells, colMap) {
-  const detected = colMap || {};
-  const norms = headerCells.map(normHeader);
-  const out = { ...DEFAULT_COL_MAP, ...detected };
-  const ini = findInicioColumnIndex(norms, null);
-  if (ini !== undefined) out.data_inicio = ini;
-  for (const [field, idx] of Object.entries(detected)) {
+function buildColMap(headerCells) {
+  const names = getCsvColumnNames();
+  const exact = findColumnMapExact(headerCells, names);
+  const out = { ...DEFAULT_COL_MAP };
+  for (const [field, idx] of Object.entries(exact)) {
     if (typeof idx === "number" && idx >= 0 && idx < headerCells.length) out[field] = idx;
   }
   return out;
 }
 
 function scoreHeaderRow(cells) {
+  const names = getCsvColumnNames();
   const norms = cells.map(normHeader);
   let score = 0;
-  const hasInicio = norms.some(isInicioAfastamentoColumn);
-  for (const [field, aliases] of Object.entries(COLUMN_ALIASES)) {
-    for (const alias of aliases) {
-      const an = normHeader(alias);
-      if (norms.some(hn => headerMatches(hn, an, field))) { score++; break; }
+  let reqFound = 0;
+  for (const c of COLUMN_GUIDE) {
+    const en = normHeader(names[c.key]);
+    if (!en) continue;
+    if (norms.includes(en)) {
+      score++;
+      if (c.required) reqFound++;
     }
   }
-  return { score, hasInicio };
+  const reqNeeded = COLUMN_GUIDE.filter(c => c.required).length;
+  return { score, reqFound, hasInicio: reqFound >= reqNeeded };
 }
 
 function findHeaderRowIndex(parsed) {
   let bestIdx = -1;
   let bestScore = 0;
-  let bestHasInicio = false;
+  let bestOk = false;
   for (let i = 0; i < Math.min(parsed.length, 80); i++) {
     if (isTitleRow(parsed[i])) continue;
     const { score, hasInicio } = scoreHeaderRow(parsed[i]);
-    if (score < 2) continue;
-    if (!hasInicio && score < 3) continue;
-    if (
-      score > bestScore ||
-      (hasInicio && !bestHasInicio) ||
-      (hasInicio && bestHasInicio && score >= bestScore)
-    ) {
+    if (!hasInicio && score < 2) continue;
+    if (score > bestScore || (hasInicio && !bestOk)) {
       bestIdx = i;
       bestScore = score;
-      bestHasInicio = hasInicio || bestHasInicio;
-    }
-  }
-  if (bestIdx < 0) {
-    for (let i = 0; i < Math.min(parsed.length, 80); i++) {
-      if (isTitleRow(parsed[i])) continue;
-      if (parsed[i].map(normHeader).some(isInicioAfastamentoColumn)) return i;
+      bestOk = hasInicio;
     }
   }
   return bestIdx;
@@ -1654,7 +1649,7 @@ function findHeaderRowIndex(parsed) {
 
 function isHeaderRow(cells) {
   const { score, hasInicio } = scoreHeaderRow(cells);
-  return (hasInicio && score >= 2) || score >= 3;
+  return hasInicio && score >= 2;
 }
 
 function isTitleRow(cells) {
@@ -1720,26 +1715,27 @@ function splitCSVLine(line, delim = ";") {
 
 /** Guia de colunas exibido no alerta central. */
 const COLUMN_GUIDE = [
-  { key: "cargo_ocupado", required: true, title: "Cargo / item", headers: "CARGO ATUAL" },
-  { key: "cargo_origem", required: false, title: "Origem", headers: "CARGO DE ORIGEM" },
-  { key: "lotacao", required: false, title: "Local / área", headers: "ÁREA DE EXERCÍCIO" },
-  { key: "setor", required: false, title: "Setor", headers: "LOTAÇÃO II" },
-  { key: "superintendencia", required: false, title: "Regional / grupo", headers: "LOTAÇÃO III" },
-  { key: "data_inicio", required: true, title: "Data de início", headers: "( INÍCIO DO AFASTAMENTO )" },
-  { key: "dias", required: false, title: "Quantidade de dias", headers: "QUANTIDADE DE DIAS DE AFASTAMENTOS" },
-  { key: "data_fim", required: false, title: "Data prevista retorno", headers: "DATA PREVISTA PARA O RETORNO" },
-  { key: "cid_raw", required: false, title: "Código CID", headers: "CID 1 / CID" },
-  { key: "idade", required: false, title: "Idade", headers: "IDADE" },
+  { key: "cargo_ocupado", required: true, title: "Cargo / item" },
+  { key: "cargo_origem", required: false, title: "Origem" },
+  { key: "lotacao", required: false, title: "Local / área" },
+  { key: "setor", required: false, title: "Setor" },
+  { key: "superintendencia", required: false, title: "Regional / grupo" },
+  { key: "data_inicio", required: true, title: "Data de início" },
+  { key: "dias", required: false, title: "Quantidade de dias" },
+  { key: "data_fim", required: false, title: "Data prevista retorno" },
+  { key: "cid_raw", required: false, title: "Código CID" },
+  { key: "idade", required: false, title: "Idade" },
 ];
 
 function renderColumnGuideList() {
   const ul = document.getElementById("column-guide-list");
   if (!ul) return;
+  const names = getCsvColumnNames();
   ul.innerHTML = COLUMN_GUIDE.map(c => {
     const req = c.required ? ' <strong>(obrigatória)</strong>' : "";
-    return `<li><strong>${escapeHtml(c.title)}</strong>${req} — cabeçalho: «${escapeHtml(c.headers)}»</li>`;
+    return `<li><strong>${escapeHtml(c.title)}</strong>${req} — «<code>${escapeHtml(names[c.key] || "")}</code>»</li>`;
   }).join("") +
-    `<li><strong>Sem cabeçalho?</strong> Use a ordem fixa das 11 primeiras colunas (como em <code>data/planilha.exemplo.csv</code>).</li>`;
+    `<li>Configure outros nomes em <strong>✏️ Personalizar</strong> → Nomes das colunas no CSV.</li>`;
 }
 
 function inspectCSVColumns(text) {
@@ -1759,20 +1755,31 @@ function inspectCSVColumns(text) {
   const hasHeader = headerIdx >= 0;
   let colMap = null;
   let usedFallback = false;
+  const names = getCsvColumnNames();
   if (hasHeader) {
-    colMap = finalizeColMap(parsed[headerIdx], findColumnMap(parsed[headerIdx]));
+    colMap = buildColMap(parsed[headerIdx]);
   } else {
     usedFallback = true;
     colMap = { ...DEFAULT_COL_MAP };
   }
-  const missingRequired = COLUMN_GUIDE.filter(c => c.required && colMap[c.key] === undefined).map(c => c.key);
+  const missingRequired = COLUMN_GUIDE.filter(c => {
+    if (!c.required) return false;
+    const idx = colMap[c.key];
+    return idx === undefined || idx < 0;
+  }).map(c => c.key);
   const warnings = [];
   if (usedFallback) {
-    warnings.push("Cabeçalho não reconhecido — o painel assumiu a ordem fixa das 11 colunas.");
+    warnings.push(
+      "Linha de cabeçalho não encontrada — inclua uma linha com os nomes das colunas "
+      + "(ex.: «" + (names.cargo_ocupado || "CARGO ATUAL") + "», «" + (names.data_inicio || "INÍCIO DO AFASTAMENTO") + "»)."
+    );
   }
-  if (missingRequired.length) {
-    warnings.push("Colunas obrigatórias não encontradas no cabeçalho: " +
-      missingRequired.map(k => COLUMN_GUIDE.find(c => c.key === k)?.title || k).join(", "));
+  if (hasHeader && missingRequired.length) {
+    const list = missingRequired.map(k => {
+      const t = COLUMN_GUIDE.find(c => c.key === k)?.title || k;
+      return t + " («" + (names[k] || "") + "»)";
+    }).join(", ");
+    warnings.push("No CSV não apareceu coluna com nome igual a: " + list + ". Ajuste o cabeçalho ou ✏️ Personalizar.");
   }
   return { usedFallback, hasHeader, missingRequired, warnings, colMap };
 }
@@ -1826,12 +1833,14 @@ function diagnoseCSV(text) {
   const headerIdx = findHeaderRowIndex(parsed);
   const cols = (headerIdx >= 0 ? parsed[headerIdx] : [])
     .map(c => cleanCell(c)).filter(Boolean).slice(0, 14);
+  const names = getCsvColumnNames();
   if (headerIdx < 0) {
-    return "cabeçalho não encontrado — inclua «CARGO ATUAL» e «( Inicio do afastamento )» (separador: "
-      + (delim === "\t" ? "tab" : delim) + "), ou use a ordem padrão de 11 colunas sem cabeçalho.";
+    return "cabeçalho não encontrado — inclua «" + (names.cargo_ocupado || "CARGO ATUAL") + "» e «"
+      + (names.data_inicio || "INÍCIO DO AFASTAMENTO") + "» (separador: "
+      + (delim === "\t" ? "tab" : delim) + ").";
   }
-  return "nenhum registro válido — confira «( Inicio do afastamento )» com datas DD/MM/AAAA"
-    + (cols.length ? ". Colunas: " + cols.join(" | ") : "");
+  return "nenhum registro válido — confira «" + (names.data_inicio || "data início") + "» com datas DD/MM/AAAA"
+    + (cols.length ? ". Colunas no arquivo: " + cols.join(" | ") : "");
 }
 
 function parseCSV(text) {
@@ -1850,9 +1859,7 @@ function parseCSV(text) {
 
   // Localiza cabeçalho e monta mapa coluna → índice
   const headerIdx = findHeaderRowIndex(parsed);
-  const colMap = headerIdx >= 0
-    ? finalizeColMap(parsed[headerIdx], findColumnMap(parsed[headerIdx]))
-    : null;
+  const colMap = headerIdx >= 0 ? buildColMap(parsed[headerIdx]) : null;
 
   const rows = [];
   for (let i = 0; i < parsed.length; i++) {
@@ -2846,7 +2853,9 @@ async function downloadUpdatedHTML(authorName) {
     // Substitui o array UPDATE_HISTORY (linha completa, qualquer valor anterior)
     newHtml = newHtml.replace(/const UPDATE_HISTORY = [^;]+;/, `const UPDATE_HISTORY = ${historyJson};`);
     const labelsJson = JSON.stringify(UI_LABELS || {});
+    const colsJson = JSON.stringify(CSV_COLUMNS || {});
     newHtml = newHtml.replace(/let UI_LABELS = [^;]+;/, `let UI_LABELS = ${labelsJson};`);
+    newHtml = newHtml.replace(/let CSV_COLUMNS = [^;]+;/, `let CSV_COLUMNS = ${colsJson};`);
     newHtml = newHtml.replace(/let APP_THEME = [^;]+;/, `let APP_THEME = "${APP_THEME}";`);
 
     // 5. Download
