@@ -540,8 +540,44 @@
   }
   .kpi, .card, .plan-card, .city-row { animation: fadeUp 0.45s ease both; }
 
+  /* Personalizar textos */
+  .fab-edit {
+    position: fixed; bottom: 22px; right: 22px; z-index: 900;
+    width: 48px; height: 48px; border-radius: 50%;
+    border: 2px solid var(--white);
+    background: linear-gradient(135deg, var(--blue-medium), var(--blue));
+    color: var(--white); font-size: 1.15rem; cursor: pointer;
+    box-shadow: 0 6px 24px rgba(10,44,91,0.35);
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .fab-edit:hover { transform: scale(1.06); box-shadow: 0 8px 28px rgba(10,44,91,0.45); }
+  .fab-edit.active { background: var(--yellow); color: var(--blue-dark); }
+
+  .ui-edit-grid {
+    display: grid; gap: 14px; max-height: 52vh; overflow-y: auto; padding-right: 4px;
+  }
+  .ui-edit-row label {
+    display: block; font-size: 0.72rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-2); margin-bottom: 4px;
+  }
+  .ui-edit-row input {
+    width: 100%; padding: 10px 12px; border: 1px solid var(--border);
+    border-radius: 8px; font-size: 0.9rem;
+  }
+  .ui-edit-row input:focus { outline: 2px solid var(--blue-light); border-color: var(--blue-medium); }
+  .ui-edit-hint {
+    font-size: 0.8rem; color: var(--text-2); line-height: 1.45; margin-bottom: 12px;
+    padding: 10px 12px; background: var(--off-white); border-radius: 8px; border: 1px solid var(--border);
+  }
+  .ui-edit-section-title {
+    font-size: 0.75rem; font-weight: 800; color: var(--blue);
+    text-transform: uppercase; letter-spacing: 0.06em;
+    margin: 8px 0 4px; padding-top: 8px; border-top: 1px solid var(--border);
+  }
+  .ui-edit-section-title:first-child { border-top: none; margin-top: 0; padding-top: 0; }
+
   @media print {
-    .filter-bar, .header-right .actions { display: none !important; }
+    .filter-bar, .header-right .actions, .fab-edit { display: none !important; }
     body { background: white; }
     .card, .kpi, .plan-card { break-inside: avoid; }
   }
@@ -575,26 +611,26 @@
     </div>
   </div>
 
-  <!-- FILTROS -->
-  <div class="filter-bar">
+  <!-- FILTROS (rótulos personalizáveis em ✏️) -->
+  <div class="filter-bar" id="filter-bar">
     <div>
-      <label>Cargo</label>
+      <label for="filter-cargo" id="label-filter-cargo" data-ui-filter="cargo">Cargo</label>
       <select id="filter-cargo"><option value="">Todos</option></select>
     </div>
     <div>
-      <label>Superintendência</label>
+      <label for="filter-regional" id="label-filter-regional" data-ui-filter="regional">Superintendência</label>
       <select id="filter-regional"><option value="">Todas</option></select>
     </div>
     <div>
-      <label>Capítulo CID</label>
+      <label for="filter-bloco" id="label-filter-bloco" data-ui-filter="bloco">Capítulo CID</label>
       <select id="filter-bloco"><option value="">Todos</option></select>
     </div>
     <div>
-      <label>Ano</label>
+      <label for="filter-ano" id="label-filter-ano" data-ui-filter="ano">Ano</label>
       <select id="filter-ano"><option value="">Todos</option></select>
     </div>
     <div>
-      <label>Mês</label>
+      <label for="filter-mes" id="label-filter-mes" data-ui-filter="mes">Mês</label>
       <select id="filter-mes"><option value="">Todos</option></select>
     </div>
   </div>
@@ -608,29 +644,29 @@
   <!-- REGIONAIS + RECORRÊNCIA -->
   <div class="grid-2">
     <div class="card">
-      <div class="card-title">🔴 Regiões com maior incidência</div>
+      <div class="card-title" data-ui-section="critical-regions" data-ui-icon="🔴">🔴 Regiões com maior incidência</div>
       <div id="critical-regions"></div>
     </div>
     <div class="card">
-      <div class="card-title">⚠️ Servidores com maior recorrência</div>
+      <div class="card-title" data-ui-section="recurrence" data-ui-icon="⚠️">⚠️ Servidores com maior recorrência</div>
       <div id="recurrence"></div>
     </div>
   </div>
 
   <!-- TEMPORAL -->
   <div class="card chart-card">
-    <div class="card-title">📈 Evolução mensal (com média móvel de 3 meses)</div>
+    <div class="card-title" data-ui-section="timeline" data-ui-icon="📈">📈 Evolução mensal (com média móvel de 3 meses)</div>
     <svg class="timeline-svg" id="timeline"></svg>
   </div>
 
   <!-- CID -->
   <div class="grid-2-asymmetric">
     <div class="card">
-      <div class="card-title">🧬 Top CIDs (códigos a 3 dígitos)</div>
+      <div class="card-title" data-ui-section="cid-top" data-ui-icon="🧬">🧬 Top CIDs (códigos a 3 dígitos)</div>
       <div id="cid-top"></div>
     </div>
     <div class="card">
-      <div class="card-title">📊 Distribuição por capítulo CID</div>
+      <div class="card-title" data-ui-section="cid-donut" data-ui-icon="📊">📊 Distribuição por capítulo CID</div>
       <div class="donut-wrap">
         <svg class="donut-svg" id="cid-donut"></svg>
         <div class="donut-legend" id="cid-donut-legend"></div>
@@ -641,11 +677,11 @@
   <!-- CARGO -->
   <div class="grid-2">
     <div class="card">
-      <div class="card-title">🏷️ Afastamentos por cargo</div>
+      <div class="card-title" data-ui-section="cargo-vol" data-ui-icon="🏷️">🏷️ Afastamentos por cargo</div>
       <div id="cargo-vol"></div>
     </div>
     <div class="card">
-      <div class="card-title">📊 Média de dias por cargo</div>
+      <div class="card-title" data-ui-section="cargo-dias" data-ui-icon="📊">📊 Média de dias por cargo</div>
       <div id="cargo-dias"></div>
     </div>
   </div>
@@ -653,11 +689,11 @@
   <!-- CAPÍTULO CID + DURAÇÃO -->
   <div class="grid-2">
     <div class="card">
-      <div class="card-title">📚 Afastamentos por capítulo CID</div>
+      <div class="card-title" data-ui-section="chapter-bars" data-ui-icon="📚">📚 Afastamentos por capítulo CID</div>
       <div id="chapter-bars"></div>
     </div>
     <div class="card">
-      <div class="card-title">⏱️ Duração dos afastamentos</div>
+      <div class="card-title" data-ui-section="duration" data-ui-icon="⏱️">⏱️ Duração dos afastamentos</div>
       <div class="donut-wrap">
         <svg class="donut-svg" id="duration-donut"></svg>
         <div class="donut-legend" id="duration-legend"></div>
@@ -668,19 +704,19 @@
   <!-- PAINEL REGIONAL -->
   <div class="grid-2-asymmetric">
     <div class="card">
-      <div class="card-title">🗺️ Painel por superintendência</div>
+      <div class="card-title" data-ui-section="regional-panel" data-ui-icon="🗺️">🗺️ Painel por superintendência</div>
       <div style="overflow-x:auto;">
         <table class="data-table" id="regional-table"></table>
       </div>
     </div>
     <div class="card">
-      <div class="card-title">🌟 Cidades modelo (baixa incidência)</div>
+      <div class="card-title" data-ui-section="model-cities" data-ui-icon="🌟">🌟 Cidades modelo (baixa incidência)</div>
       <div id="model-cities"></div>
     </div>
   </div>
 
   <!-- PLANO DE AÇÃO -->
-  <div class="section-title">Plano de ação recomendado</div>
+  <div class="section-title" data-ui-section="plan-section" data-ui-icon="">Plano de ação recomendado</div>
   <div class="grid-3">
     <div class="plan-card">
       <div class="plan-icon">🩺</div>
@@ -774,6 +810,30 @@
   </div>
 </div>
 
+<!-- MODAL: personalizar textos -->
+<div class="modal-overlay" id="ui-edit-modal">
+  <div class="modal" style="max-width:520px;">
+    <div class="modal-header">
+      <h2>✏️ Personalizar textos</h2>
+      <button class="modal-close" onclick="closeUiEditModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p class="ui-edit-hint">
+        Renomeie os filtros e títulos para o seu contexto (estoque, prateleira, loja, etc.).
+        Ao <strong>Salvar versão atualizada</strong>, os nomes ficam gravados no arquivo HTML.
+      </p>
+      <div class="ui-edit-grid" id="ui-edit-form"></div>
+    </div>
+    <div class="modal-footer" style="flex-wrap:wrap; gap:8px;">
+      <button class="btn-modal" type="button" onclick="resetUiLabels()">Restaurar padrão</button>
+      <button class="btn-modal" type="button" onclick="closeUiEditModal()">Cancelar</button>
+      <button class="btn-modal primary" type="button" onclick="saveUiLabelsFromForm()">Aplicar</button>
+    </div>
+  </div>
+</div>
+
+<button type="button" class="fab-edit" id="btn-ui-edit" title="Personalizar nomes dos filtros e títulos" aria-label="Personalizar textos">✏️</button>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -790,6 +850,167 @@ const GENERATED_AT = "__GENERATED_AT__";
 const UPDATED_BY = "__UPDATED_BY__";
 const UPDATE_HISTORY = __UPDATE_HISTORY__;
 // UPDATE_HISTORY é um array: [{name, when, records}, ...] em ordem cronológica.
+
+let UI_LABELS = __UI_LABELS__;
+const DEFAULT_UI_LABELS = {
+  filters: {
+    cargo:    { label: "Cargo", placeholder: "Todos" },
+    regional: { label: "Superintendência", placeholder: "Todas" },
+    bloco:    { label: "Capítulo CID", placeholder: "Todos" },
+    ano:      { label: "Ano", placeholder: "Todos" },
+    mes:      { label: "Mês", placeholder: "Todos" }
+  },
+  sections: {
+    "critical-regions": "Regiões com maior incidência",
+    "recurrence": "Servidores com maior recorrência",
+    "timeline": "Evolução mensal (com média móvel de 3 meses)",
+    "cid-top": "Top CIDs (códigos a 3 dígitos)",
+    "cid-donut": "Distribuição por capítulo CID",
+    "cargo-vol": "Afastamentos por cargo",
+    "cargo-dias": "Média de dias por cargo",
+    "chapter-bars": "Afastamentos por capítulo CID",
+    "duration": "Duração dos afastamentos",
+    "regional-panel": "Painel por superintendência",
+    "model-cities": "Cidades modelo (baixa incidência)",
+    "plan-section": "Plano de ação recomendado"
+  }
+};
+
+function deepMergeLabels(base, patch) {
+  const out = JSON.parse(JSON.stringify(base));
+  if (!patch || typeof patch !== "object") return out;
+  if (patch.filters) {
+    out.filters = out.filters || {};
+    for (const k of Object.keys(patch.filters)) {
+      out.filters[k] = { ...(out.filters[k] || {}), ...patch.filters[k] };
+    }
+  }
+  if (patch.sections) {
+    out.sections = { ...out.sections, ...patch.sections };
+  }
+  return out;
+}
+
+function getUILabels() {
+  return deepMergeLabels(DEFAULT_UI_LABELS, UI_LABELS);
+}
+
+function applyUILabels() {
+  const L = getUILabels();
+  Object.keys(L.filters).forEach(key => {
+    const cfg = L.filters[key];
+    const lab = document.getElementById("label-filter-" + key);
+    const sel = document.getElementById("filter-" + key);
+    if (lab && cfg.label) lab.textContent = cfg.label;
+    if (sel && sel.options.length && cfg.placeholder != null) {
+      sel.options[0].text = cfg.placeholder;
+    }
+  });
+  document.querySelectorAll("[data-ui-section]").forEach(el => {
+    const key = el.getAttribute("data-ui-section");
+    const icon = el.getAttribute("data-ui-icon") || "";
+    const text = L.sections[key];
+    if (text != null) {
+      el.textContent = icon ? (icon + " " + text) : text;
+    }
+  });
+}
+
+function filterPlaceholder(key, fallback) {
+  const f = getUILabels().filters[key];
+  return (f && f.placeholder) ? f.placeholder : fallback;
+}
+
+function openUiEditModal() {
+  const L = getUILabels();
+  const form = document.getElementById("ui-edit-form");
+  let html = '<div class="ui-edit-section-title">Filtros de busca</div>';
+  const filterOrder = ["cargo", "regional", "bloco", "ano", "mes"];
+  filterOrder.forEach(key => {
+    const cfg = L.filters[key] || {};
+    html += `
+      <div class="ui-edit-row">
+        <label>Filtro: ${escapeHtml(DEFAULT_UI_LABELS.filters[key].label)}</label>
+        <input type="text" data-ui-field="filter-label-${key}" value="${escapeHtml(cfg.label || "")}" placeholder="Ex.: Estoque, Prateleira, Categoria…">
+        <label style="margin-top:8px;">Opção «todos» no menu</label>
+        <input type="text" data-ui-field="filter-ph-${key}" value="${escapeHtml(cfg.placeholder || "")}" placeholder="Ex.: Todos, Todas…">
+      </div>`;
+  });
+  html += '<div class="ui-edit-section-title">Títulos dos blocos</div>';
+  Object.keys(L.sections).forEach(key => {
+    html += `
+      <div class="ui-edit-row">
+        <label>${escapeHtml(key)}</label>
+        <input type="text" data-ui-field="section-${key}" value="${escapeHtml(L.sections[key] || "")}">
+      </div>`;
+  });
+  form.innerHTML = html;
+  document.getElementById("ui-edit-modal").classList.add("show");
+  document.getElementById("btn-ui-edit").classList.add("active");
+}
+
+function closeUiEditModal() {
+  document.getElementById("ui-edit-modal").classList.remove("show");
+  document.getElementById("btn-ui-edit").classList.remove("active");
+}
+
+function readUiLabelsFromForm() {
+  const L = getUILabels();
+  const next = { filters: {}, sections: { ...L.sections } };
+  ["cargo", "regional", "bloco", "ano", "mes"].forEach(key => {
+    const labelEl = document.querySelector(`[data-ui-field="filter-label-${key}"]`);
+    const phEl = document.querySelector(`[data-ui-field="filter-ph-${key}"]`);
+    next.filters[key] = {
+      label: (labelEl && labelEl.value.trim()) || DEFAULT_UI_LABELS.filters[key].label,
+      placeholder: (phEl && phEl.value.trim()) || DEFAULT_UI_LABELS.filters[key].placeholder
+    };
+  });
+  document.querySelectorAll("[data-ui-field^='section-']").forEach(inp => {
+    const key = inp.getAttribute("data-ui-field").replace("section-", "");
+    next.sections[key] = inp.value.trim() || DEFAULT_UI_LABELS.sections[key];
+  });
+  return next;
+}
+
+function saveUiLabelsFromForm() {
+  UI_LABELS = readUiLabelsFromForm();
+  try {
+    localStorage.setItem(APP_FILE_PREFIX + "-ui-labels", JSON.stringify(UI_LABELS));
+  } catch (_) {}
+  applyUILabels();
+  if (ALL_ROWS.length) populateFilters(ALL_ROWS);
+  renderAll();
+  IS_MODIFIED = true;
+  updateDataStatus();
+  closeUiEditModal();
+  showToast("✓ Textos personalizados aplicados — salve o HTML para preservar", "success");
+}
+
+function resetUiLabels() {
+  UI_LABELS = {};
+  try { localStorage.removeItem(APP_FILE_PREFIX + "-ui-labels"); } catch (_) {}
+  applyUILabels();
+  if (ALL_ROWS.length) populateFilters(ALL_ROWS);
+  renderAll();
+  IS_MODIFIED = true;
+  updateDataStatus();
+  buildUiEditFormDefaults();
+  showToast("✓ Textos restaurados ao padrão", "success");
+}
+
+function buildUiEditFormDefaults() {
+  if (document.getElementById("ui-edit-modal").classList.contains("show")) {
+    openUiEditModal();
+  }
+}
+
+function loadStoredUiLabels() {
+  if (UI_LABELS && Object.keys(UI_LABELS).length) return;
+  try {
+    const raw = localStorage.getItem(APP_FILE_PREFIX + "-ui-labels");
+    if (raw) UI_LABELS = JSON.parse(raw);
+  } catch (_) {}
+}
 
 /* ---------- DICIONÁRIOS CID ---------- */
 const CID_NAMES = {
@@ -1911,31 +2132,34 @@ function renderFooter(rows) {
 
 /* ---------- FILTER POPULATION ---------- */
 function populateFilters(rows) {
-  const fillSimple = (id, values, currentValue) => {
+  applyUILabels();
+  const fillSimple = (id, values, currentValue, phFallback) => {
     const sel = document.getElementById(id);
-    const placeholder = sel.options[0].text;
-    sel.innerHTML = `<option value="">${placeholder}</option>` + values.map(v => `<option value="${v}" ${String(v)===String(currentValue)?"selected":""}>${v}</option>`).join("");
+    const key = id.replace("filter-", "");
+    const placeholder = filterPlaceholder(key, phFallback);
+    sel.innerHTML = `<option value="">${escapeHtml(placeholder)}</option>` + values.map(v => `<option value="${v}" ${String(v)===String(currentValue)?"selected":""}>${escapeHtml(v)}</option>`).join("");
   };
-  const fillKV = (id, pairs, currentValue) => {
+  const fillKV = (id, pairs, currentValue, phFallback) => {
     const sel = document.getElementById(id);
-    const placeholder = sel.options[0].text;
-    sel.innerHTML = `<option value="">${placeholder}</option>` + pairs.map(([k,v]) => `<option value="${k}" ${String(k)===String(currentValue)?"selected":""}>${v}</option>`).join("");
+    const key = id.replace("filter-", "");
+    const placeholder = filterPlaceholder(key, phFallback);
+    sel.innerHTML = `<option value="">${escapeHtml(placeholder)}</option>` + pairs.map(([k,v]) => `<option value="${k}" ${String(k)===String(currentValue)?"selected":""}>${escapeHtml(v)}</option>`).join("");
   };
 
-  fillSimple("filter-cargo", [...new Set(rows.map(r => r.cargo).filter(Boolean))].sort(), STATE.cargo);
-  fillSimple("filter-regional", [...new Set(rows.map(r => r.regional).filter(Boolean))].sort(), STATE.regional);
+  fillSimple("filter-cargo", [...new Set(rows.map(r => r.cargo).filter(Boolean))].sort(), STATE.cargo, "Todos");
+  fillSimple("filter-regional", [...new Set(rows.map(r => r.regional).filter(Boolean))].sort(), STATE.regional, "Todas");
 
   // Capítulos presentes nos dados (mantém ordem do dicionário oficial)
   const presentChapters = new Set(rows.map(r => r.cid_chapter).filter(Boolean));
   const chapterOptions = CID_CHAPTERS.filter(([k]) => presentChapters.has(k));
-  fillKV("filter-bloco", chapterOptions, STATE.bloco);
+  fillKV("filter-bloco", chapterOptions, STATE.bloco, "Todos");
 
-  fillSimple("filter-ano", [...new Set(rows.map(r => r.ano))].sort(), STATE.ano);
+  fillSimple("filter-ano", [...new Set(rows.map(r => r.ano))].sort(), STATE.ano, "Todos");
 
   // Meses 1..12 com labels em PT — só mostra os que têm dados
   const presentMonths = new Set(rows.map(r => r.mes_num).filter(Boolean));
   const monthOptions = MESES_PT.map((nm, i) => [i+1, nm]).filter(([k]) => presentMonths.has(k));
-  fillKV("filter-mes", monthOptions, STATE.mes);
+  fillKV("filter-mes", monthOptions, STATE.mes, "Todos");
 }
 
 /* ---------- MAIN RENDER ---------- */
@@ -2110,6 +2334,8 @@ async function downloadUpdatedHTML(authorName) {
     newHtml = newHtml.replace(/const UPDATED_BY = "[^"]*"/, `const UPDATED_BY = "${escapeJsString(authorName)}"`);
     // Substitui o array UPDATE_HISTORY (linha completa, qualquer valor anterior)
     newHtml = newHtml.replace(/const UPDATE_HISTORY = [^;]+;/, `const UPDATE_HISTORY = ${historyJson};`);
+    const labelsJson = JSON.stringify(UI_LABELS || {});
+    newHtml = newHtml.replace(/let UI_LABELS = [^;]+;/, `let UI_LABELS = ${labelsJson};`);
 
     // 5. Download
     const blob = new Blob([newHtml], { type: "text/html;charset=utf-8" });
@@ -2223,6 +2449,12 @@ window.addEventListener("beforeunload", (e) => {
 });
 
 /* ---------- BOOT ---------- */
+loadStoredUiLabels();
+applyUILabels();
+document.getElementById("btn-ui-edit").addEventListener("click", openUiEditModal);
+document.getElementById("ui-edit-modal").addEventListener("click", (e) => {
+  if (e.target.id === "ui-edit-modal") closeUiEditModal();
+});
 loadCSVText(EMBEDDED_CSV, false);
 updateDataStatus();
 

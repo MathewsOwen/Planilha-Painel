@@ -33,6 +33,8 @@ python build.py
 
 Abra `standalone/dashboard.html` no navegador.
 
+**Personalizar textos:** clique no botão **✏️** (canto inferior direito) para renomear filtros (ex.: Cargo → Estoque, Prateleira) e títulos dos blocos. Use **Salvar versão atualizada** para gravar no arquivo HTML.
+
 ### Streamlit
 
 1. Python 3.10+
