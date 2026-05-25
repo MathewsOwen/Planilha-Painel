@@ -1,4 +1,4 @@
-name: Deploy demo (GitHub Pages)
+name: Publicar painel (GitHub Pages)
 
 on:
   push:

@@ -1,9 +1,9 @@
 # Planilha Painel
 
-[![Demo](https://img.shields.io/badge/demo-online-0a2c5b?style=for-the-badge)](https://mathewsowen.github.io/Planilha-Painel/)
+[![Painel online](https://img.shields.io/badge/painel-online-0a2c5b?style=for-the-badge)](https://mathewsowen.github.io/Planilha-Painel/)
 [![Repo](https://img.shields.io/badge/GitHub-Planilha--Painel-24292f?style=for-the-badge)](https://github.com/MathewsOwen/Planilha-Painel)
 
-**Demo ao vivo (dados fictícios):** https://mathewsowen.github.io/Planilha-Painel/
+**Painel online (dados fictícios):** https://mathewsowen.github.io/Planilha-Painel/
 
 Transforme exportações de **CSV/Excel** em um painel executivo — KPIs, gráficos e filtros. Funciona **100% offline** (um único HTML) ou com **Streamlit** para desenvolvimento local.
 

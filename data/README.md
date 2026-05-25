@@ -2,7 +2,7 @@
 
 | Arquivo | Uso |
 |---------|-----|
-| `planilha.exemplo.csv` | Dados **fictícios** versionados no Git (demonstração) |
+| `planilha.exemplo.csv` | Dados **fictícios** versionados no Git (amostra) |
 | `planilha.csv` | Sua planilha **real** (crie localmente; não commitar) |
 
 ```bat
